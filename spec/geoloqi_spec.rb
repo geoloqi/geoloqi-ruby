@@ -97,11 +97,11 @@ describe Geoloqi::Session do
     it 'makes a location/history call with get and hash params' do
       expect { @session.get('location/history', :count => 2)['points'].count == 2 }
     end
-    
+
     it 'makes a location/history call with get and query string directly in path' do
       expect { @session.get('location/history?count=2')['points'].count == 2 }
     end
-    
+
     it 'makes a location/history call with get and query string params' do
       expect { @session.get('location/history', 'count=2')['points'].count == 2 }
     end
@@ -176,10 +176,15 @@ describe Geoloqi::Session do
       ensure
         WebMock.allow_net_connect!
       end
-      expect { response == {:access_token => 'access_token1234',
+
+      {:access_token => 'access_token1234',
                             :scope => nil,
                             :expires_in => '86400',
-                            :refresh_token => 'refresh_token1234'} }
+                            :refresh_token => 'refresh_token1234'}.each do |k,v|
+        expect { response[k] == v }
+      end
+
+      expect { (5..10).include? (Time.rfc2822(response[:expires_at]) - (Time.now+86400)).abs }
     end
   end
 
@@ -189,7 +194,7 @@ describe Geoloqi::Session do
                                       :auth => { :access_token => 'access_token1234',
                                                  :scope => nil,
                                                  :expires_in => '86400',
-                                                 :expires_at => Time.at(0),
+                                                 :expires_at => Time.at(0).rfc2822,
                                                  :refresh_token => 'refresh_token1234' }
     end
 
