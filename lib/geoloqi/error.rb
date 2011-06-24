@@ -5,6 +5,6 @@ module Geoloqi
       super type
     end
   end
-  
+
   class Error < StandardError; end
 end
