@@ -26,6 +26,15 @@ describe Geoloqi do
   end
 end
 
+describe Geoloqi::ApiError do
+  it 'throws exception properly and allows drill-down of message' do
+    error = Geoloqi::ApiError.new 'not_enough_cats', 'not enough cats to complete this request'
+    expect { error.type == 'not_enough_cats' }
+    expect { error.reason == 'not enough cats to complete this request' }
+    expect { error.message == "#{error.type} - #{error.reason}" }
+  end
+end
+
 describe Geoloqi::Config do
   describe 'with redirect_uri' do
     it 'returns authorize url' do
