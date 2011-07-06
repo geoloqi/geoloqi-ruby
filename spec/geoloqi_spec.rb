@@ -195,6 +195,27 @@ describe Geoloqi::Session do
 
       expect { (5..10).include? (Time.rfc2822(response[:expires_at]) - (Time.now+86400)).abs }
     end
+
+    it 'does not refresh when never expires' do    
+      WebMock.disable_net_connect!
+      begin
+        response = @session.get_auth '1234', 'http://neverexpires.example.com/'
+      ensure
+        WebMock.allow_net_connect!
+      end
+      
+      expect { @session.auth[:expires_in] == '0' }
+      expect { @session.auth[:expires_at].nil? }
+      
+      WebMock.disable_net_connect!
+      begin
+        response = @session.get 'account/username'
+      ensure
+        WebMock.allow_net_connect!
+      end
+      expect { @session.auth[:access_token] == 'access_token1234' }
+      expect { response['username'] == 'bulbasaurrulzok' }
+    end
   end
 
   describe 'with config and expired auth' do
@@ -226,6 +247,18 @@ stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
                  :client_secret => ARGV[1],
                  :code => "1234",
                  :grant_type => "authorization_code",
+                 :redirect_uri => "http://neverexpires.example.com/"}.to_json).
+  to_return(:status => 200,
+            :body => {:access_token => 'access_token1234',
+                      :scope => nil,
+                      :expires_in => '0',
+                      :refresh_token => 'never_expires'}.to_json)
+
+stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
+  with(:body => {:client_id => ARGV[0],
+                 :client_secret => ARGV[1],
+                 :code => "1234",
+                 :grant_type => "authorization_code",
                  :redirect_uri => "http://test.site/"}.to_json).
   to_return(:status => 200,
             :body => {:access_token => 'access_token1234',
@@ -243,6 +276,11 @@ stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
                       :scope => nil,
                       :expires_in => '5000',
                       :refresh_token => 'refresh_token4567'}.to_json)
+
+stub_request(:get, "https://api.geoloqi.com/1/account/username").
+  with(:headers => {'Authorization'=>'OAuth access_token1234'}).
+  to_return(:status => 200,
+            :body => {'username' => 'bulbasaurrulzok'}.to_json)
 
 stub_request(:get, "https://api.geoloqi.com/1/account/username").
   with(:headers => {'Authorization'=>'OAuth access_token4567'}).

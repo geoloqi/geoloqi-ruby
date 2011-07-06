@@ -78,7 +78,7 @@ module Geoloqi
 
       # expires_at is likely incorrect. I'm chopping 5 seconds
       # off to allow for a more graceful failover.
-      auth['expires_at'] = ((Time.now + auth['expires_in'].to_i)-5).rfc2822
+      auth['expires_at'] = auth_expires_at auth['expires_in']
       self.auth = auth
       self.auth
     end
@@ -93,12 +93,18 @@ module Geoloqi
 
       # expires_at is likely incorrect. I'm chopping 5 seconds
       # off to allow for a more graceful failover.
-      auth['expires_at'] = ((Time.now + auth['expires_in'].to_i)-5).rfc2822
+      auth['expires_at'] = auth_expires_at auth['expires_in']
       self.auth = auth
       self.auth
     end
 
     private
+
+    def auth_expires_at(expires_in=nil)
+      # expires_at is likely incorrect. I'm chopping 5 seconds
+      # off to allow for a more graceful failover.
+      expires_in.to_i.zero? ? nil : ((Time.now + expires_in.to_i)-5).rfc2822
+    end
 
     def headers
       headers = {'Content-Type' => 'application/json', 'User-Agent' => "geoloqi-ruby #{Geoloqi.version}", 'Accept' => 'application/json'}
