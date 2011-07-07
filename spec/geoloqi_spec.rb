@@ -48,7 +48,7 @@ describe Geoloqi::Config do
   end
 
   it 'throws exception if non-boolean value is fed to logging' do
-    expect { rescuing { Geoloqi.config(:client_id => '', :client_secret => '', :enable_logging => :cats )}.class == ArgumentError }
+    expect { rescuing { Geoloqi.config(:client_id => '', :client_secret => '', :enable_logging => :cats )}.class == Geoloqi::ArgumentError }
   end
 
   it 'correctly checks booleans for client_id and client_secret' do
@@ -72,6 +72,19 @@ describe Geoloqi::Session do
 
     it 'should not find access token' do
       expect { !@session.access_token? }
+    end
+  end
+
+  describe 'with access token and hashie mash' do
+    before do
+      @session = Geoloqi::Session.new :access_token => 'access_token1234', :config => {:use_hashie_mash => true}
+    end
+
+    it 'should respond to method calls in addition to hash' do
+      response = @session.get 'account/username'
+      expect { response['username'] == 'bulbasaurrulzok' }
+      expect { response.username == 'bulbasaurrulzok' }
+      expect { response[:username] == 'bulbasaurrulzok' }
     end
   end
 
@@ -196,17 +209,17 @@ describe Geoloqi::Session do
       expect { (5..10).include? (Time.rfc2822(response[:expires_at]) - (Time.now+86400)).abs }
     end
 
-    it 'does not refresh when never expires' do    
+    it 'does not refresh when never expires' do
       WebMock.disable_net_connect!
       begin
         response = @session.get_auth '1234', 'http://neverexpires.example.com/'
       ensure
         WebMock.allow_net_connect!
       end
-      
+
       expect { @session.auth[:expires_in] == '0' }
       expect { @session.auth[:expires_at].nil? }
-      
+
       WebMock.disable_net_connect!
       begin
         response = @session.get 'account/username'
