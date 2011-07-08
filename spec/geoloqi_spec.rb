@@ -28,10 +28,11 @@ end
 
 describe Geoloqi::ApiError do
   it 'throws exception properly and allows drill-down of message' do
-    error = Geoloqi::ApiError.new 'not_enough_cats', 'not enough cats to complete this request'
+    error = Geoloqi::ApiError.new 405, 'not_enough_cats', 'not enough cats to complete this request'
+    expect { error.status == 405 }
     expect { error.type == 'not_enough_cats' }
     expect { error.reason == 'not enough cats to complete this request' }
-    expect { error.message == "#{error.type} - #{error.reason}" }
+    expect { error.message == "#{error.type} - #{error.reason} (405)" }
   end
 end
 
@@ -182,7 +183,14 @@ describe Geoloqi::Session do
     end
 
     it 'fails with an exception' do
-      expect { rescuing { @session.get 'message/send' }.message == 'invalid_token' }
+      begin
+        @session.get 'message/send'
+      rescue Exception => e
+        expect { e.class == Geoloqi::ApiError }
+        expect { e.status == 401 }
+        expect { e.type == 'invalid_token' }
+        expect { e.message == 'invalid_token (401)' }
+      end
     end
   end
 

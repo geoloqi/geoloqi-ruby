@@ -55,7 +55,7 @@ module Geoloqi
         end
 
         hash = JSON.parse response.body
-        raise ApiError.new(hash['error'], hash['error_description']) if hash.is_a?(Hash) && hash['error']
+        raise ApiError.new(response.status, hash['error'], hash['error_description']) if hash.is_a?(Hash) && hash['error']
       rescue Geoloqi::ApiError
         raise Error.new('Unable to procure fresh access token from API on second attempt') if retry_attempt > 0
         if hash['error'] == 'expired_token'
