@@ -266,8 +266,8 @@ include WebMock::API
 stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
   with(:body => {:client_id => ARGV[0],
                  :client_secret => ARGV[1],
-                 :code => "1234",
                  :grant_type => "authorization_code",
+                 :code => "1234",
                  :redirect_uri => "http://neverexpires.example.com/"}.to_json).
   to_return(:status => 200,
             :body => {:access_token => 'access_token1234',
@@ -278,8 +278,8 @@ stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
 stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
   with(:body => {:client_id => ARGV[0],
                  :client_secret => ARGV[1],
-                 :code => "1234",
                  :grant_type => "authorization_code",
+                 :code => "1234",
                  :redirect_uri => "http://test.site/"}.to_json).
   to_return(:status => 200,
             :body => {:access_token => 'access_token1234',

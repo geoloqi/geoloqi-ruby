@@ -69,12 +69,10 @@ module Geoloqi
       @config.use_hashie_mash ? Hashie::Mash.new(hash) : hash
     end
 
-    def renew_access_token!
+    def establish(opts={})
       require 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
-      auth = post 'oauth/token', :client_id => @config.client_id,
-                                 :client_secret => @config.client_secret,
-                                 :grant_type => 'refresh_token',
-                                 :refresh_token => self.auth[:refresh_token]
+      auth = post 'oauth/token', {:client_id => @config.client_id,
+                                  :client_secret => @config.client_secret}.merge!(opts)
 
       # expires_at is likely incorrect. I'm chopping 5 seconds
       # off to allow for a more graceful failover.
@@ -83,19 +81,12 @@ module Geoloqi
       self.auth
     end
 
-    def get_auth(code, redirect_uri=@config.redirect_uri)
-      require 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
-      auth = post 'oauth/token', :client_id => @config.client_id,
-                                 :client_secret => @config.client_secret,
-                                 :code => code,
-                                 :grant_type => 'authorization_code',
-                                 :redirect_uri => redirect_uri
+    def renew_access_token!
+      establish :grant_type => 'refresh_token', :refresh_token => self.auth[:refresh_token]
+    end
 
-      # expires_at is likely incorrect. I'm chopping 5 seconds
-      # off to allow for a more graceful failover.
-      auth['expires_at'] = auth_expires_at auth['expires_in']
-      self.auth = auth
-      self.auth
+    def get_auth(code, redirect_uri=@config.redirect_uri)
+      establish :grant_type => 'authorization_code', :code => code, :redirect_uri => redirect_uri
     end
 
     private
