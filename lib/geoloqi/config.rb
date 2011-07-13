@@ -1,10 +1,11 @@
 module Geoloqi
   class Config
-    attr_accessor :client_id, :client_secret, :redirect_uri, :adapter, :enable_logging, :use_hashie_mash
+    attr_accessor :client_id, :client_secret, :redirect_uri, :adapter, :enable_logging, :use_hashie_mash, :throw_exceptions
     def initialize(opts={})
       opts.each {|k,v| send("#{k}=", v)}
       self.enable_logging ||= false
       self.use_hashie_mash ||= false
+      self.throw_exceptions ||= true
       begin
         require 'hashie' if self.use_hashie_mash && !defined?(Hashie::Mash)
       rescue LoadError

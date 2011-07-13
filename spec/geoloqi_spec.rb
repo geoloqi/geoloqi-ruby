@@ -76,6 +76,16 @@ describe Geoloqi::Session do
     end
   end
 
+  describe 'with access token and throw exceptions false' do
+    before do
+      @session = Geoloqi::Session.new :access_token => 'access_token1234', :config => {:throw_exceptions => false}
+    end
+    it 'should not throw api error exception' do
+      response = @session.get 'badmethodcall'
+      expect {response['error'] == 'not_found'}
+    end
+  end
+
   describe 'with access token and hashie mash' do
     before do
       @session = Geoloqi::Session.new :access_token => 'access_token1234', :config => {:use_hashie_mash => true}
