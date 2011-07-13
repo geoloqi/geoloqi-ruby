@@ -5,6 +5,7 @@ require 'faraday'
 require 'logger'
 require 'geoloqi/config'
 require 'geoloqi/error'
+require 'geoloqi/response'
 require 'geoloqi/session'
 require 'geoloqi/version'
 

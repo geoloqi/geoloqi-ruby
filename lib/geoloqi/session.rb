@@ -40,20 +40,11 @@ module Geoloqi
     end
 
     def run(meth, path, query=nil)
-      query = Rack::Utils.parse_query query if query.is_a?(String)
       renew_access_token! if auth[:expires_at] && Time.rfc2822(auth[:expires_at]) <= Time.now && !(path =~ /^\/?oauth\/token$/)
       retry_attempt = 0
 
       begin
-        response = @connection.send(meth) do |req|
-          req.url "/#{API_VERSION.to_s}/#{path.gsub(/^\//, '')}"
-          req.headers = headers
-
-          if query
-            meth == :get ? req.params = query : req.body = query.to_json
-          end
-        end
-
+        response = execute meth, path, query
         hash = JSON.parse response.body
         raise ApiError.new(response.status, hash['error'], hash['error_description']) if hash.is_a?(Hash) && hash['error'] && !config.throw_exceptions
       rescue Geoloqi::ApiError
@@ -67,6 +58,19 @@ module Geoloqi
         end
       end
       @config.use_hashie_mash ? Hashie::Mash.new(hash) : hash
+    end
+
+    def execute(meth, path, query=nil)
+      query = Rack::Utils.parse_query query if query.is_a?(String)
+      raw = @connection.send(meth) do |req|
+        req.url "/#{API_VERSION.to_s}/#{path.gsub(/^\//, '')}"
+        req.headers = headers
+
+        if query
+          meth == :get ? req.params = query : req.body = query.to_json
+        end
+      end
+      Response.new raw.status, raw.headers, raw.body
     end
 
     def establish(opts={})
