@@ -24,6 +24,15 @@ describe Geoloqi do
                               "client_id=#{Rack::Utils.escape 'test'}&"+
                               "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
   end
+  
+  it 'returns authorize url with scope' do
+    authorize_url = Geoloqi.authorize_url 'test', 'http://blah.blah/test', :scope => 'can_party_hard'
+    expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
+                              'response_type=code&'+
+                              "client_id=#{Rack::Utils.escape 'test'}&"+
+                              "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}&"+
+                              "scope=can_party_hard" }
+  end
 end
 
 describe Geoloqi::ApiError do
