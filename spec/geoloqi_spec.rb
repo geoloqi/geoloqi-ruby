@@ -76,6 +76,12 @@ describe Geoloqi::Session do
     end
   end
 
+  describe 'with access token and throw exceptions not set' do
+    it 'should throw api error exception' do
+      expect { rescuing {Geoloqi::Session.new(:access_token => 'access_token1234').get('badmethodcall')}.class == Geoloqi::ApiError }
+    end
+  end
+
   describe 'with access token and throw exceptions false' do
     before do
       @session = Geoloqi::Session.new :access_token => 'access_token1234', :config => {:throw_exceptions => false}
