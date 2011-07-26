@@ -83,13 +83,25 @@ module Geoloqi
       self.auth
     end
 
-    def get_auth(code, redirect_uri=@config.redirect_uri)
+    def get_auth(code, redirect_uri=@config.redirect_uri, remove_code=true)
       require 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
+      
+      # Remove the oauth code from query string in the event same url is used (such as request.url in Sinatra).
+      # It's a convenience hack, so I've provided a mechanism to opt out with remove_code.
+      if remove_code
+        redirect_uri = Addressable::URI.parse redirect_uri
+        query = redirect_uri.query_values
+        if query && query['code']
+          query.delete('code')
+          redirect_uri.query_values = query.empty? ? nil : query
+        end
+      end
+      
       auth = post 'oauth/token', :client_id => @config.client_id,
                                  :client_secret => @config.client_secret,
                                  :code => code,
                                  :grant_type => 'authorization_code',
-                                 :redirect_uri => redirect_uri
+                                 :redirect_uri => redirect_uri.to_s
 
       # expires_at is likely incorrect. I'm chopping 5 seconds
       # off to allow for a more graceful failover.

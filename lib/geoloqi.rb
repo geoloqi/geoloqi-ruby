@@ -3,6 +3,7 @@ $LOAD_PATH.unshift(libdir) unless $LOAD_PATH.include?(libdir)
 require 'json'
 require 'faraday'
 require 'logger'
+require 'addressable/uri'
 require 'geoloqi/config'
 require 'geoloqi/error'
 require 'geoloqi/session'

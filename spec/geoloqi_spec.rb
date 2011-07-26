@@ -172,7 +172,7 @@ describe Geoloqi::Session do
     it 'retrieves auth with mock' do
       WebMock.disable_net_connect!
       begin
-        response = @session.get_auth('1234', 'http://test.site/')
+        response = @session.get_auth('1234', 'http://test.site')
       ensure
         WebMock.allow_net_connect!
       end
@@ -186,6 +186,55 @@ describe Geoloqi::Session do
 
       expect { (5..10).include? (Time.rfc2822(response[:expires_at]) - (Time.now+86400)).abs }
     end
+
+    it 'retrieves auth with mock and removes code' do
+      WebMock.disable_net_connect!
+      begin
+        response = @session.get_auth('1234', 'http://test.site?code=1234')
+      ensure
+        WebMock.allow_net_connect!
+      end
+
+      {:access_token => 'access_token1234',
+                            :scope => nil,
+                            :expires_in => '86400',
+                            :refresh_token => 'refresh_token1234'}.each do |k,v|
+        expect { response[k] == v }
+      end
+    end
+    
+    it 'retrieves auth with mock, removes code, keeps other query string pair' do
+      WebMock.disable_net_connect!
+      begin
+        response = @session.get_auth('1234', 'http://test.site/?code=1234&test=ok')
+      ensure
+        WebMock.allow_net_connect!
+      end
+
+      {:access_token => 'access_token1234',
+                            :scope => nil,
+                            :expires_in => '86400',
+                            :refresh_token => 'refresh_token1234'}.each do |k,v|
+        expect { response[k] == v }
+      end
+    end
+    
+    it 'retrieves auth with mock, retains code in request_uri' do
+      WebMock.disable_net_connect!
+      begin
+        response = @session.get_auth('1234', 'http://test.site/?code=1234&test=ok', false)
+      ensure
+        WebMock.allow_net_connect!
+      end
+
+      {:access_token => 'access_token1234',
+                            :scope => nil,
+                            :expires_in => '86400',
+                            :refresh_token => 'refresh_token1234'}.each do |k,v|
+        expect { response[k] == v }
+      end
+    end
+    
   end
 
   describe 'with config and expired auth' do
@@ -217,7 +266,7 @@ stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
                  :client_secret => ARGV[1],
                  :code => "1234",
                  :grant_type => "authorization_code",
-                 :redirect_uri => "http://test.site/"}.to_json).
+                 :redirect_uri => "http://test.site"}.to_json).
   to_return(:status => 200,
             :body => {:access_token => 'access_token1234',
                       :scope => nil,
@@ -234,6 +283,30 @@ stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
                       :scope => nil,
                       :expires_in => '5000',
                       :refresh_token => 'refresh_token4567'}.to_json)
+
+stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
+  with(:body => {:client_id => ARGV[0],
+                 :client_secret => ARGV[1],
+                 :code => "1234",
+                 :grant_type => "authorization_code",
+                 :redirect_uri => "http://test.site/?test=ok"}.to_json).
+  to_return(:status => 200,
+            :body => {:access_token => 'access_token1234',
+                      :scope => nil,
+                      :expires_in => '86400',
+                      :refresh_token => 'refresh_token1234'}.to_json)
+
+stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
+  with(:body => {:client_id => ARGV[0],
+                 :client_secret => ARGV[1],
+                 :code => "1234",
+                 :grant_type => "authorization_code",
+                 :redirect_uri => "http://test.site/?code=1234&test=ok"}.to_json).
+  to_return(:status => 200,
+            :body => {:access_token => 'access_token1234',
+                      :scope => nil,
+                      :expires_in => '86400',
+                      :refresh_token => 'refresh_token1234'}.to_json)
 
 stub_request(:get, "https://api.geoloqi.com/1/account/username").
   with(:headers => {'Authorization'=>'OAuth access_token4567'}).
