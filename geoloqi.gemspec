@@ -16,7 +16,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'json'
   s.add_dependency 'faraday',     '>= 0.6.1'
-  s.add_dependency 'addressable', '>= 0'
 
   s.add_development_dependency 'rake',     '>= 0'
   s.add_development_dependency 'wrong',    '= 0.5.0'

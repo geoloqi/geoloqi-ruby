@@ -40,7 +40,7 @@ describe Geoloqi do
                                 "client_id=#{Rack::Utils.escape 'test'}&"+
                                 "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
     end
-    
+
     it 'is valid with scope' do
       authorize_url = Geoloqi.authorize_url 'test', 'http://blah.blah/test', :scope => 'can_party_hard'
       expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
@@ -179,7 +179,7 @@ describe Geoloqi::Session do
         to_return(:status => 200, :body => {:name => 'Test Layer'}.to_json)
 
       stub_request(:post, api_url('layer/delete/layer_id1234')).
-        with(:headers => {'Accept'=>'application/json', 'Authorization'=>'OAuth access_token1234', 'Content-Length'=>'0', 'Content-Type'=>'application/json', 'User-Agent'=>'geoloqi-ruby 0.9.16'}).
+        with(:headers => auth_headers).
         to_return(:status => 200, :body => {'result' => 'ok'}.to_json)
 
       layer_id = @session.post('/layer/create', :name => 'Test Layer')['layer_id']
