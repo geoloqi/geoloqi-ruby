@@ -311,50 +311,6 @@ describe Geoloqi::Session do
       expect { (5..10).include? (Time.rfc2822(response[:expires_at]) - (Time.now+86400)).abs }
     end
 
-    it 'retrieves auth with mock and removes code' do
-      stub_request(:post, api_url('oauth/token')).
-        with(:body => {:client_id => CLIENT_ID,
-                       :client_secret => CLIENT_SECRET,
-                       :grant_type => "authorization_code",
-                       :code => "1234",
-                       :redirect_uri => "http://example.com?test=removes_code"}.to_json).
-        to_return(:body => {:access_token => 'access_token1234',
-                            :scope => nil,
-                            :expires_in => '86400',
-                            :refresh_token => 'refresh_token1234'}.to_json)
-
-      response = @session.get_auth('1234', 'http://example.com?code=1234&test=removes_code')
-
-      {:access_token => 'access_token1234',
-       :scope => nil,
-       :expires_in => '86400',
-       :refresh_token => 'refresh_token1234'}.each do |k,v|
-        expect { response[k] == v }
-      end
-    end
-
-    it 'retrieves auth with mock and retains code' do
-      stub_request(:post, api_url('oauth/token')).
-        with(:body => {:client_id => CLIENT_ID,
-                       :client_secret => CLIENT_SECRET,
-                       :grant_type => "authorization_code",
-                       :code => "1234",
-                       :redirect_uri => "http://example.com?code=1234&test=retains_code"}.to_json).
-        to_return(:body => {:access_token => 'access_token1234',
-                            :scope => nil,
-                            :expires_in => '86400',
-                            :refresh_token => 'refresh_token1234'}.to_json)
-
-      response = @session.get_auth('1234', 'http://example.com?code=1234&test=retains_code', false)
-
-      {:access_token => 'access_token1234',
-       :scope => nil,
-       :expires_in => '86400',
-       :refresh_token => 'refresh_token1234'}.each do |k,v|
-        expect { response[k] == v }
-      end
-    end
-
     it 'does not refresh when never expires' do
       stub_request(:post, api_url('oauth/token')).
         with(:body => {:client_id => CLIENT_ID,

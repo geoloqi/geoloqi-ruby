@@ -27,9 +27,7 @@ module Geoloqi
       !access_token.nil?
     end
 
-    def authorize_url(redirect_uri=@config.redirect_uri, state=nil)
-      opts = {}
-      opts[:state] = state if state.is_a?(String)
+    def authorize_url(redirect_uri=@config.redirect_uri, opts={})
       Geoloqi.authorize_url @config.client_id, redirect_uri, opts
     end
 
@@ -91,19 +89,8 @@ module Geoloqi
       establish :grant_type => 'refresh_token', :refresh_token => self.auth[:refresh_token]
     end
 
-    def get_auth(code, redirect_uri=@config.redirect_uri, remove_code=true)
-      # Remove the oauth code from query string in the event same url is used (such as request.url in Sinatra).
-      # It's a convenience hack, so I've provided a mechanism to opt out with remove_code.
-      if remove_code
-        redirect_uri = Addressable::URI.parse redirect_uri
-        query = redirect_uri.query_values
-        if query && query['code']
-          query.delete('code')
-          redirect_uri.query_values = query.empty? ? nil : query
-        end
-      end
-
-      establish :grant_type => 'authorization_code', :code => code, :redirect_uri => redirect_uri.to_s
+    def get_auth(code, redirect_uri=@config.redirect_uri)
+      establish :grant_type => 'authorization_code', :code => code, :redirect_uri => redirect_uri
     end
 
     private
