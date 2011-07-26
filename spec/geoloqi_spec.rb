@@ -1,11 +1,25 @@
-raise ArgumentError, 'usage: be ruby spec/geoloqi_spec.rb "client_id" "client_secret" "access_token"' unless ARGV.length == 3
 # Bundler.setup
 require 'rubygems'
 require './lib/geoloqi.rb'
 require 'minitest/autorun'
 require 'wrong'
 require 'wrong/adapters/minitest'
+require 'em-http-request' if RUBY_VERSION[0..2].to_f >= 1.9 # Preload for WebMock
 require 'webmock'
+require 'webmock/http_lib_adapters/em_http_request'
+
+CLIENT_ID = 'client_id1234'
+CLIENT_SECRET = 'client_secret1234'
+ACCESS_TOKEN = 'access_token1234'
+
+def auth_headers(access_token='access_token1234')
+  {'Content-Type' => 'application/json', 
+   'User-Agent' => "geoloqi-ruby #{Geoloqi.version}", 
+   'Accept' => 'application/json',
+   'Authorization' => "OAuth #{access_token}"}
+end
+
+def api_url(path); "#{Geoloqi::API_URL}/#{Geoloqi::API_VERSION}/#{path}" end
 
 Wrong.config.alias_assert :expect
 
@@ -48,7 +62,7 @@ end
 describe Geoloqi::Config do
   describe 'with redirect_uri' do
     it 'returns authorize url' do
-      Geoloqi.config :client_id => ARGV[0], :client_secret => ARGV[1], :redirect_uri => 'http://blah.blah/test'
+      Geoloqi.config :client_id => CLIENT_ID, :client_secret => CLIENT_SECRET, :redirect_uri => 'http://blah.blah/test'
       authorize_url = Geoloqi.authorize_url 'test'
       expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
                                 'response_type=code&'+
@@ -71,10 +85,6 @@ describe Geoloqi::Config do
 end
 
 describe Geoloqi::Session do
-  before do
-    WebMock.allow_net_connect!
-  end
-
   describe 'with nothing passed' do
     before do
       @session = Geoloqi::Session.new
@@ -116,7 +126,7 @@ describe Geoloqi::Session do
 
   describe 'with access token and no config' do
     before do
-      @session = Geoloqi::Session.new :access_token => ARGV[2]
+      @session = Geoloqi::Session.new :access_token => ACCESS_TOKEN
     end
 
     it 'successfully makes mock call with array' do
@@ -157,10 +167,10 @@ describe Geoloqi::Session do
 
   describe 'with oauth id, secret, and access token via Geoloqi::Config' do
     it 'should load config' do
-      @session = Geoloqi::Session.new :access_token => ARGV[2], :config => Geoloqi::Config.new(:client_id => ARGV[0],
-                                                                                               :client_secret => ARGV[1])
-      expect { @session.config.client_id == ARGV[0] }
-      expect { @session.config.client_secret == ARGV[1] }
+      @session = Geoloqi::Session.new :access_token => ACCESS_TOKEN, :config => Geoloqi::Config.new(:client_id => CLIENT_ID,
+                                                                                                    :client_secret => CLIENT_SECRET)
+      expect { @session.config.client_id == CLIENT_ID }
+      expect { @session.config.client_secret == CLIENT_SECRET }
     end
   end
 
@@ -173,7 +183,7 @@ describe Geoloqi::Session do
     end
     describe 'with em synchrony adapter and access token' do
       it 'makes call to api' do
-        session = Geoloqi::Session.new :access_token => ARGV[2], :config => {:adapter => :em_synchrony}
+        session = Geoloqi::Session.new :access_token => ACCESS_TOKEN, :config => {:adapter => :em_synchrony}
         response = session.get 'layer/info/Gx'
         expect { response['layer_id'] == 'Gx' }
       end
@@ -182,11 +192,11 @@ describe Geoloqi::Session do
 
   describe 'with client id, client secret, and access token via direct hash' do
     before do
-      @session = Geoloqi::Session.new :access_token => ARGV[2], :config => {:client_id => ARGV[0], :client_secret => ARGV[1]}
+      @session = Geoloqi::Session.new :access_token => ACCESS_TOKEN, :config => {:client_id => CLIENT_ID, :client_secret => CLIENT_SECRET}
     end
 
     it 'should return access token' do
-      expect { @session.access_token == ARGV[2] }
+      expect { @session.access_token == ACCESS_TOKEN }
     end
 
     it 'should recognize access token exists' do
@@ -197,7 +207,7 @@ describe Geoloqi::Session do
       authorize_url = @session.authorize_url('http://blah.blah/test')
       expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
                                 "response_type=code&"+
-                                "client_id=#{Rack::Utils.escape ARGV[0]}&"+
+                                "client_id=#{Rack::Utils.escape CLIENT_ID}&"+
                                 "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
     end
   end
@@ -209,7 +219,7 @@ describe Geoloqi::Session do
 
     it 'fails with an exception' do
       begin
-        @session.get 'message/send'
+        @session.post 'message/send'
       rescue Exception => e
         expect { e.class == Geoloqi::ApiError }
         expect { e.status == 401 }
@@ -221,16 +231,11 @@ describe Geoloqi::Session do
 
   describe 'with config' do
     before do
-      @session = Geoloqi::Session.new :config => {:client_id => ARGV[0], :client_secret => ARGV[1]}
+      @session = Geoloqi::Session.new :config => {:client_id => CLIENT_ID, :client_secret => CLIENT_SECRET}
     end
 
     it 'retrieves auth with mock' do
-      WebMock.disable_net_connect!
-      begin
-        response = @session.get_auth('1234', 'http://example.com')
-      ensure
-        WebMock.allow_net_connect!
-      end
+      response = @session.get_auth('1234', 'http://example.com')
 
       {:access_token => 'access_token1234',
                             :scope => nil,
@@ -243,12 +248,7 @@ describe Geoloqi::Session do
     end
 
     it 'retrieves auth with mock and removes code' do
-      WebMock.disable_net_connect!
-      begin
-        response = @session.get_auth('1234', 'http://example.com?code=1234&test=removes_code')
-      ensure
-        WebMock.allow_net_connect!
-      end
+      response = @session.get_auth('1234', 'http://example.com?code=1234&test=removes_code')
 
       {:access_token => 'access_token1234',
                             :scope => nil,
@@ -259,12 +259,7 @@ describe Geoloqi::Session do
     end
 
     it 'retrieves auth with mock and removes code' do
-      WebMock.disable_net_connect!
-      begin
-        response = @session.get_auth('1234', 'http://example.com?code=1234&test=removes_code')
-      ensure
-        WebMock.allow_net_connect!
-      end
+      response = @session.get_auth('1234', 'http://example.com?code=1234&test=removes_code')
 
       {:access_token => 'access_token1234',
                             :scope => nil,
@@ -275,12 +270,7 @@ describe Geoloqi::Session do
     end
 
     it 'retrieves auth with mock and removes code' do
-      WebMock.disable_net_connect!
-      begin
-        response = @session.get_auth('1234', 'http://example.com?code=1234&test=retains_code', false)
-      ensure
-        WebMock.allow_net_connect!
-      end
+      response = @session.get_auth('1234', 'http://example.com?code=1234&test=retains_code', false)
 
       {:access_token => 'access_token1234',
                             :scope => nil,
@@ -291,22 +281,13 @@ describe Geoloqi::Session do
     end
 
     it 'does not refresh when never expires' do
-      WebMock.disable_net_connect!
-      begin
-        response = @session.get_auth '1234', 'http://neverexpires.example.com/'
-      ensure
-        WebMock.allow_net_connect!
-      end
+      response = @session.get_auth '1234', 'http://neverexpires.example.com/'
 
       expect { @session.auth[:expires_in] == '0' }
       expect { @session.auth[:expires_at].nil? }
 
-      WebMock.disable_net_connect!
-      begin
-        response = @session.get 'account/username'
-      ensure
-        WebMock.allow_net_connect!
-      end
+      response = @session.get 'account/username'
+
       expect { @session.auth[:access_token] == 'access_token1234' }
       expect { response['username'] == 'bulbasaurrulzok' }
     end
@@ -314,7 +295,7 @@ describe Geoloqi::Session do
 
   describe 'with config and expired auth' do
     before do
-      @session = Geoloqi::Session.new :config => {:client_id => ARGV[0], :client_secret => ARGV[1]},
+      @session = Geoloqi::Session.new :config => {:client_id => CLIENT_ID, :client_secret => CLIENT_SECRET},
                                       :auth => { :access_token => 'access_token1234',
                                                  :scope => nil,
                                                  :expires_in => '86400',
@@ -323,12 +304,7 @@ describe Geoloqi::Session do
     end
 
     it 'retrieves new access token and retries query if expired' do
-      WebMock.disable_net_connect!
-      begin
-        @session.get('account/username')
-      ensure
-        WebMock.allow_net_connect!
-      end
+      @session.get('account/username')
       expect { @session.auth[:access_token] == 'access_token4567' }
     end
   end
@@ -336,9 +312,9 @@ end
 
 include WebMock::API
 
-stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
-  with(:body => {:client_id => ARGV[0],
-                 :client_secret => ARGV[1],
+stub_request(:post, api_url('oauth/token')).
+  with(:body => {:client_id => CLIENT_ID,
+                 :client_secret => CLIENT_SECRET,
                  :grant_type => "authorization_code",
                  :code => "1234",
                  :redirect_uri => "http://neverexpires.example.com/"}.to_json).
@@ -347,9 +323,9 @@ stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
                       :expires_in => '0',
                       :refresh_token => 'never_expires'}.to_json)
 
-stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
-  with(:body => {:client_id => ARGV[0],
-                 :client_secret => ARGV[1],
+stub_request(:post, api_url('oauth/token')).
+  with(:body => {:client_id => CLIENT_ID,
+                 :client_secret => CLIENT_SECRET,
                  :grant_type => "authorization_code",
                  :code => "1234",
                  :redirect_uri => "http://example.com"}.to_json).
@@ -358,9 +334,9 @@ stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
                       :expires_in => '86400',
                       :refresh_token => 'refresh_token1234'}.to_json)
 
-stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
-  with(:body => {:client_id => ARGV[0],
-                 :client_secret => ARGV[1],
+stub_request(:post, api_url('oauth/token')).
+  with(:body => {:client_id => CLIENT_ID,
+                 :client_secret => CLIENT_SECRET,
                  :grant_type => "refresh_token",
                  :refresh_token => "refresh_token1234"}.to_json).
   to_return(:body => {:access_token => 'access_token4567',
@@ -368,9 +344,9 @@ stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
                       :expires_in => '5000',
                       :refresh_token => 'refresh_token4567'}.to_json)
 
-stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
-  with(:body => {:client_id => ARGV[0],
-                 :client_secret => ARGV[1],
+stub_request(:post, api_url('oauth/token')).
+  with(:body => {:client_id => CLIENT_ID,
+                 :client_secret => CLIENT_SECRET,
                  :grant_type => "authorization_code",
                  :code => "1234",
                  :redirect_uri => "http://example.com?test=removes_code"}.to_json).
@@ -379,9 +355,9 @@ stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
                       :expires_in => '86400',
                       :refresh_token => 'refresh_token1234'}.to_json)
 
-stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
-  with(:body => {:client_id => ARGV[0],
-                 :client_secret => ARGV[1],
+stub_request(:post, api_url('oauth/token')).
+  with(:body => {:client_id => CLIENT_ID,
+                 :client_secret => CLIENT_SECRET,
                  :grant_type => "authorization_code",
                  :code => "1234",
                  :redirect_uri => "http://example.com?code=1234&test=retains_code"}.to_json).
@@ -390,15 +366,43 @@ stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
                       :expires_in => '86400',
                       :refresh_token => 'refresh_token1234'}.to_json)
 
-stub_request(:get, "https://api.geoloqi.com/1/account/username").
+stub_request(:get, api_url('account/username')).
   with(:headers => {'Authorization'=>'OAuth access_token1234'}).
   to_return(:body => {'username' => 'bulbasaurrulzok'}.to_json)
 
-stub_request(:get, "https://api.geoloqi.com/1/account/username").
+stub_request(:get, api_url('account/username')).
   with(:headers => {'Authorization'=>'OAuth access_token4567'}).
   to_return(:body => {'username' => 'pikachu4lyfe'}.to_json)
 
 # This is not a real API call, we're using it to test that arrays are JSON encoded.
-stub_request(:post, "https://api.geoloqi.com/1/play_record_at_geoloqi_hq").
-  with(:body => [{:artist => 'Television'}].to_json).
+stub_request(:post, api_url('play_record_at_geoloqi_hq')).
+  with(:headers => auth_headers, :body => [{:artist => 'Television'}].to_json).
   to_return(:body => {'result' => 'ok'}.to_json)
+
+stub_request(:post, api_url('message/send')).
+        with(:headers => auth_headers('hey brah whats up let me in its cool 8)')).
+        to_return(:status => 401, :body => {'error' => 'invalid_token'}.to_json)
+
+stub_request(:get, api_url('badmethodcall')).
+        with(:headers => auth_headers).
+        to_return(:status => 404, :body => {'error' => 'not_found'}.to_json)
+        
+stub_request(:get, api_url('layer/info/Gx')).
+  with(:headers => auth_headers).
+  to_return(:status => 200, :body => {'layer_id' => 'Gx'}.to_json)
+
+stub_request(:get, api_url('location/history?count=2')).
+  with(:headers => auth_headers).
+  to_return(:status => 200, :body => {:points => [1,2]}.to_json)
+  
+stub_request(:post, api_url('layer/create')).
+  with(:headers => auth_headers, :body => {:name => 'Test Layer'}.to_json).
+  to_return(:status => 200, :body => {:layer_id => 'layer_id1234'}.to_json)
+
+stub_request(:get, api_url('layer/info/layer_id1234')).
+  with(:headers => auth_headers).
+  to_return(:status => 200, :body => {:name => 'Test Layer'}.to_json)
+
+stub_request(:post, api_url('layer/delete/layer_id1234')).
+  with(:headers => {'Accept'=>'application/json', 'Authorization'=>'OAuth access_token1234', 'Content-Length'=>'0', 'Content-Type'=>'application/json', 'User-Agent'=>'geoloqi-ruby 0.9.16'}).
+  to_return(:status => 200, :body => {'result' => 'ok'}.to_json)
