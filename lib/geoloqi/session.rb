@@ -27,8 +27,10 @@ module Geoloqi
       !access_token.nil?
     end
 
-    def authorize_url(redirect_uri=@config.redirect_uri)
-      Geoloqi.authorize_url @config.client_id, redirect_uri
+    def authorize_url(redirect_uri=@config.redirect_uri, state=nil)
+      opts = {}
+      opts[:state] = state if state.is_a?(String)
+      Geoloqi.authorize_url @config.client_id, redirect_uri, opts
     end
 
     def get(path, query=nil)
