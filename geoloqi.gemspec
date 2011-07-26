@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
   s.version = Geoloqi.version
   s.authors = ['Kyle Drake', 'Aaron Parecki']
   s.email = ['kyledrake@gmail.com', 'aaron@parecki.com']
-  s.homepage = 'https://github.com/kyledrake/geoloqi-ruby'
+  s.homepage = 'http://github.com/geoloqi/geoloqi-ruby'
   s.summary = 'Powerful, flexible, lightweight interface to the awesome Geoloqi platform API'
   s.description = 'Powerful, flexible, lightweight interface to the awesome Geoloqi platform API! Uses Faraday, '+
                   'and can be used with Ruby 1.9 and EM-Synchrony for really fast, highly concurrent development.'
@@ -20,5 +20,6 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'wrong',    '= 0.5.0'
   s.add_development_dependency 'minitest', '= 2.2.2'
-  s.add_development_dependency 'webmock',  '= 1.6.4'
+  s.add_development_dependency 'webmock', '= 1.6.4'
+  s.add_development_dependency 'hashie',  '= 1.0.0'
 end

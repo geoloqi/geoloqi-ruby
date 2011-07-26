@@ -6,6 +6,7 @@ require 'logger'
 require 'addressable/uri'
 require 'geoloqi/config'
 require 'geoloqi/error'
+require 'geoloqi/response'
 require 'geoloqi/session'
 require 'geoloqi/version'
 
@@ -22,8 +23,10 @@ module Geoloqi
     @@config = Config.new opts
   end
 
-  def self.authorize_url(client_id=nil, redirect_uri=@@config.redirect_uri)
+  def self.authorize_url(client_id=nil, redirect_uri=@@config.redirect_uri, opts={})
     raise "client_id required to authorize url. Pass with Geoloqi.config" unless client_id
-    "#{OAUTH_URL}?response_type=code&client_id=#{Rack::Utils.escape client_id}&redirect_uri=#{Rack::Utils.escape redirect_uri}"
+    url = "#{OAUTH_URL}?response_type=code&client_id=#{Rack::Utils.escape client_id}&redirect_uri=#{Rack::Utils.escape redirect_uri}"
+    url += "&#{Rack::Utils.build_query opts}" unless opts.empty?
+    url
   end
 end

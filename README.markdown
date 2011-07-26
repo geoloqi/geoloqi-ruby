@@ -51,6 +51,17 @@ You can send query string parameters with get requests too:
 	# or
 	geoloqi.get 'location/history?count=2'
 
+Hashie::Mash support
+---
+Want to access in a more OOP/JSON style way? Use Hashie::Mash as the response object:
+
+    require 'geoloqi'
+    geoloqi = Geoloqi::Session.new :access_token => 'YOUR OAUTH2 ACCESS TOKEN GOES HERE', :config => {:use_hashie_mash => true}
+    response = geoloqi.get 'layer/info/Gx'
+    response.layer_id    # this works
+    response['layer_id'] # this works too
+    response[:layer_id]  # so does this
+
 Implementing OAuth2
 ---
 
@@ -80,8 +91,9 @@ Here is a simple Sinatra example implementing the OAuth2 flow with Geoloqi:
 	end
   
 	get '/?' do
-	  session[:geoloqi_auth] = geoloqi.get_auth(params[:code], GEOLOQI_REDIRECT_URI) if params[:code] && !geoloqi.access_token?
+	  geoloqi.get_auth(params[:code], GEOLOQI_REDIRECT_URI) if params[:code] && !geoloqi.access_token?
 	  redirect geoloqi.authorize_url(GEOLOQI_REDIRECT_URI) unless geoloqi.access_token?
+    
 	  username = geoloqi.get('account/username')['username']
 	  "You have successfully logged in as #{username}!"
 	end
@@ -133,4 +145,3 @@ TODO / Possible projects
 * Plugin for Sinatra
 * Rails plugin (works fine as-is, but maybe we can make it easier?)
 * More Concrete API in addition to the simple one?
-* Hashie::Mash and/or SymbolTable support out of the box

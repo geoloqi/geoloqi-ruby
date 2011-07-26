@@ -40,25 +40,16 @@ module Geoloqi
     end
 
     def run(meth, path, query=nil)
-      query = Rack::Utils.parse_query query if query.is_a?(String)
       renew_access_token! if auth[:expires_at] && Time.rfc2822(auth[:expires_at]) <= Time.now && !(path =~ /^\/?oauth\/token$/)
       retry_attempt = 0
 
       begin
-        response = @connection.send(meth) do |req|
-          req.url "/#{API_VERSION.to_s}/#{path.gsub(/^\//, '')}"
-          req.headers = headers
-
-          if query
-            meth == :get ? req.params = query : req.body = query.to_json
-          end
-        end
-
-        json = JSON.parse response.body
-        raise ApiError.new(json['error'], json['error_description']) if json.is_a?(Hash) && json['error']
+        response = execute meth, path, query
+        hash = JSON.parse response.body
+        raise ApiError.new(response.status, hash['error'], hash['error_description']) if hash.is_a?(Hash) && hash['error'] && @config.throw_exceptions
       rescue Geoloqi::ApiError
         raise Error.new('Unable to procure fresh access token from API on second attempt') if retry_attempt > 0
-        if json['error'] == 'expired_token'
+        if hash['error'] == 'expired_token'
           renew_access_token!
           retry_attempt += 1
           retry
@@ -66,26 +57,39 @@ module Geoloqi
           fail
         end
       end
-      json
+      @config.use_hashie_mash ? Hashie::Mash.new(hash) : hash
     end
 
-    def renew_access_token!
+    def execute(meth, path, query=nil)
+      query = Rack::Utils.parse_query query if query.is_a?(String)
+      raw = @connection.send(meth) do |req|
+        req.url "/#{API_VERSION.to_s}/#{path.gsub(/^\//, '')}"
+        req.headers = headers
+
+        if query
+          meth == :get ? req.params = query : req.body = query.to_json
+        end
+      end
+      Response.new raw.status, raw.headers, raw.body
+    end
+
+    def establish(opts={})
       require 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
-      auth = post 'oauth/token', :client_id => @config.client_id,
-                                 :client_secret => @config.client_secret,
-                                 :grant_type => 'refresh_token',
-                                 :refresh_token => self.auth[:refresh_token]
+      auth = post 'oauth/token', {:client_id => @config.client_id,
+                                  :client_secret => @config.client_secret}.merge!(opts)
 
       # expires_at is likely incorrect. I'm chopping 5 seconds
       # off to allow for a more graceful failover.
-      auth['expires_at'] = ((Time.now + auth['expires_in'].to_i)-5).rfc2822
+      auth['expires_at'] = auth_expires_at auth['expires_in']
       self.auth = auth
       self.auth
     end
 
+    def renew_access_token!
+      establish :grant_type => 'refresh_token', :refresh_token => self.auth[:refresh_token]
+    end
+
     def get_auth(code, redirect_uri=@config.redirect_uri, remove_code=true)
-      require 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
-      
       # Remove the oauth code from query string in the event same url is used (such as request.url in Sinatra).
       # It's a convenience hack, so I've provided a mechanism to opt out with remove_code.
       if remove_code
@@ -96,21 +100,17 @@ module Geoloqi
           redirect_uri.query_values = query.empty? ? nil : query
         end
       end
-      
-      auth = post 'oauth/token', :client_id => @config.client_id,
-                                 :client_secret => @config.client_secret,
-                                 :code => code,
-                                 :grant_type => 'authorization_code',
-                                 :redirect_uri => redirect_uri.to_s
 
-      # expires_at is likely incorrect. I'm chopping 5 seconds
-      # off to allow for a more graceful failover.
-      auth['expires_at'] = ((Time.now + auth['expires_in'].to_i)-5).rfc2822
-      self.auth = auth
-      self.auth
+      establish :grant_type => 'authorization_code', :code => code, :redirect_uri => redirect_uri.to_s
     end
 
     private
+
+    def auth_expires_at(expires_in=nil)
+      # expires_at is likely incorrect. I'm chopping 5 seconds
+      # off to allow for a more graceful failover.
+      expires_in.to_i.zero? ? nil : ((Time.now + expires_in.to_i)-5).rfc2822
+    end
 
     def headers
       headers = {'Content-Type' => 'application/json', 'User-Agent' => "geoloqi-ruby #{Geoloqi.version}", 'Accept' => 'application/json'}

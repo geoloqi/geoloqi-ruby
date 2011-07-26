@@ -1,10 +1,17 @@
 module Geoloqi
   class ApiError < StandardError
-    def initialize(type, message=nil)
-      type += " - #{message}" if message
-      super type
+    attr_reader :status, :type, :reason
+    def initialize(status, type, reason=nil)
+      @status = status
+      @type = type
+      @reason = reason
+      message = type
+      message += " - #{reason}" if reason
+      message += " (#{status})"
+      super message
     end
   end
 
   class Error < StandardError; end
+  class ArgumentError < ArgumentError; end
 end
