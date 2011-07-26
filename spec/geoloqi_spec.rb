@@ -32,21 +32,23 @@ describe Geoloqi do
     expect { Geoloqi.config.client_secret == 'client_secret' }
   end
 
-  it 'returns authorize url' do
-    authorize_url = Geoloqi.authorize_url 'test', 'http://blah.blah/test'
-    expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
-                              'response_type=code&'+
-                              "client_id=#{Rack::Utils.escape 'test'}&"+
-                              "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
-  end
-
-  it 'returns authorize url with scope' do
-    authorize_url = Geoloqi.authorize_url 'test', 'http://blah.blah/test', :scope => 'can_party_hard'
-    expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
-                              'response_type=code&'+
-                              "client_id=#{Rack::Utils.escape 'test'}&"+
-                              "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}&"+
-                              "scope=can_party_hard" }
+  describe 'authorize_url' do
+    it 'is valid' do
+      authorize_url = Geoloqi.authorize_url 'test', 'http://blah.blah/test'
+      expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
+                                'response_type=code&'+
+                                "client_id=#{Rack::Utils.escape 'test'}&"+
+                                "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
+    end
+    
+    it 'is valid with scope' do
+      authorize_url = Geoloqi.authorize_url 'test', 'http://blah.blah/test', :scope => 'can_party_hard'
+      expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
+                                'response_type=code&'+
+                                "client_id=#{Rack::Utils.escape 'test'}&"+
+                                "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}&"+
+                                "scope=can_party_hard" }
+    end
   end
 end
 
@@ -253,11 +255,20 @@ describe Geoloqi::Session do
     end
 
     it 'gets authorize url' do
-      authorize_url = @session.authorize_url('http://blah.blah/test')
+      authorize_url = @session.authorize_url 'http://blah.blah/test'
       expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
                                 "response_type=code&"+
                                 "client_id=#{Rack::Utils.escape CLIENT_ID}&"+
                                 "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
+    end
+
+    it 'gets authorize url with scope' do
+      authorize_url = @session.authorize_url 'http://blah.blah/test', :scope => 'party_hard'
+      expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
+                                "response_type=code&"+
+                                "client_id=#{Rack::Utils.escape CLIENT_ID}&"+
+                                "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}&"+
+                                "scope=party_hard" }
     end
   end
 
@@ -299,7 +310,7 @@ describe Geoloqi::Session do
                             :expires_in => '86400',
                             :refresh_token => 'refresh_token1234'}.to_json)
 
-      response = @session.get_auth('1234', 'http://example.com')
+      response = @session.get_auth '1234', 'http://example.com'
 
       {:access_token => 'access_token1234',
                             :scope => nil,
@@ -360,7 +371,7 @@ describe Geoloqi::Session do
         with(:headers => {'Authorization'=>'OAuth access_token4567'}).
         to_return(:body => {'username' => 'pikachu4lyfe'}.to_json)
 
-      @session.get('account/username')
+      @session.get 'account/username'
       expect { @session.auth[:access_token] == 'access_token4567' }
     end
   end
