@@ -145,3 +145,4 @@ TODO / Possible projects
 * Plugin for Sinatra
 * Rails plugin (works fine as-is, but maybe we can make it easier?)
 * More Concrete API in addition to the simple one?
+
