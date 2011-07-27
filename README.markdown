@@ -1,4 +1,4 @@
-Geoloqi Library for Ruby
+Geoloqi Library for Ruby ![](https://secure.travis-ci.org/geoloqi/geoloqi-ruby.png)
 ===
 Powerful, flexible, lightweight interface to the awesome Geoloqi platform API! Uses Faraday, and can be used with Ruby 1.9 and EM-Synchrony for really fast, highly concurrent development.
 
@@ -145,4 +145,3 @@ TODO / Possible projects
 * Plugin for Sinatra
 * Rails plugin (works fine as-is, but maybe we can make it easier?)
 * More Concrete API in addition to the simple one?
-
