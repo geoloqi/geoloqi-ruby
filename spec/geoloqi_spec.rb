@@ -4,9 +4,7 @@ require './lib/geoloqi.rb'
 require 'minitest/autorun'
 require 'wrong'
 require 'wrong/adapters/minitest'
-require 'em-http-request' if RUBY_VERSION[0..2].to_f >= 1.9 # Preload for WebMock
 require 'webmock'
-require 'webmock/http_lib_adapters/em_http_request'
 
 CLIENT_ID = 'client_id1234'
 CLIENT_SECRET = 'client_secret1234'
@@ -223,22 +221,6 @@ describe Geoloqi::Session do
     end
   end
 
-  # Ruby 1.9 only!
-  if RUBY_VERSION[0..2].to_f >= 1.9
-    begin
-      require 'em-synchrony'
-    rescue LoadError
-      puts 'NOTE: You need the em-synchrony gem for all tests to pass: gem install em-synchrony'
-    end
-    describe 'with em synchrony adapter and access token' do
-      it 'makes call to api' do
-        session = Geoloqi::Session.new :access_token => ACCESS_TOKEN, :config => {:adapter => :em_synchrony}
-        response = session.get 'layer/info/Gx'
-        expect { response['layer_id'] == 'Gx' }
-      end
-    end
-  end
-
   describe 'with client id, client secret, and access token via direct hash' do
     before do
       @session = Geoloqi::Session.new :access_token => ACCESS_TOKEN,
@@ -318,8 +300,6 @@ describe Geoloqi::Session do
                             :refresh_token => 'refresh_token1234'}.each do |k,v|
         expect { response[k] == v }
       end
-
-      expect { (5..10).include? (Time.rfc2822(response[:expires_at]) - (Time.now+86400)).abs }
     end
 
     it 'does not refresh when never expires' do
@@ -333,6 +313,10 @@ describe Geoloqi::Session do
                             :scope => nil,
                             :expires_in => '0',
                             :refresh_token => 'never_expires'}.to_json)
+                            
+      stub_request(:get, api_url('account/username')).
+        with(:headers => {'Authorization'=>'OAuth access_token1234'}).
+        to_return(:body => {:username => 'bulbasaurrulzok'}.to_json)
 
       response = @session.get_auth '1234', 'http://neverexpires.example.com/'
 
