@@ -49,7 +49,7 @@ module Geoloqi
         raise ApiError.new(response.status, hash['error'], hash['error_description']) if hash.is_a?(Hash) && hash['error'] && @config.throw_exceptions
       rescue Geoloqi::ApiError
         raise Error.new('Unable to procure fresh access token from API on second attempt') if retry_attempt > 0
-        if hash['error'] == 'expired_token'
+        if hash['error'] == 'expired_token' && !(hash['error_description'] =~ /The auth code expired/)
           renew_access_token!
           retry_attempt += 1
           retry

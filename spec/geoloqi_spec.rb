@@ -358,5 +358,9 @@ describe Geoloqi::Session do
       @session.get 'account/username'
       expect { @session.auth[:access_token] == 'access_token4567' }
     end
+    
+    it 'does not attempt to refresh for auth code expire' do
+      # IMPLEMENT
+    end
   end
 end
