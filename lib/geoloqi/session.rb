@@ -56,6 +56,8 @@ module Geoloqi
         else
           fail
         end
+      rescue JSON::ParserError
+        raise Geoloqi::Error, "API returned invalid JSON. Status: #{response.status} Body: #{response.body}"
       end
       @config.use_hashie_mash ? Hashie::Mash.new(hash) : hash
     end

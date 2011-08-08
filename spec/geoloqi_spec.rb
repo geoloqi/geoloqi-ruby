@@ -143,6 +143,18 @@ describe Geoloqi::Session do
       @session = Geoloqi::Session.new :access_token => ACCESS_TOKEN
     end
 
+    it 'throws an exception on a hard request error' do
+      stub_request(:get, api_url('crashing_method')).
+        with(:headers => auth_headers).
+        to_return(:status => 500, :body => 'Something broke hard!')
+
+        expect { rescuing {Geoloqi::Session.new(:access_token => 'access_token1234').get('crashing_method')}.class == Geoloqi::Error }
+        expect { 
+          rescuing {Geoloqi::Session.new(:access_token => 'access_token1234').get('crashing_method')}.message == 
+          "API returned invalid JSON. Status: 500 Body: Something broke hard!"
+        }
+    end
+
     it 'successfully makes mock call with array' do
       stub_request(:post, api_url('play_record_at_geoloqi_hq')).
         with(:headers => auth_headers, :body => [{:artist => 'Television'}].to_json).
@@ -328,6 +340,25 @@ describe Geoloqi::Session do
       expect { @session.auth[:access_token] == 'access_token1234' }
       expect { response['username'] == 'bulbasaurrulzok' }
     end
+    
+    it 'does not attempt to refresh for auth code expire' do
+      stub_request(:post, api_url('oauth/token')).
+        with(:body => {:client_id => CLIENT_ID,
+                       :client_secret => CLIENT_SECRET,
+                       :grant_type => "authorization_code",
+                       :code => "1234",
+                       :redirect_uri => "http://expired_code.example.com/"}.to_json).
+        to_return(:body => {:access_token => 'access_token1234',
+                            :scope => nil,
+                            :expires_in => '0',
+                            :refresh_token => 'never_expires'}.to_json)
+      
+      stub_request(:get, api_url('account/username?code=1234')).
+        with(:headers => auth_headers).
+        to_return(:status => 200, :body => {:points => [1,2]}.to_json)
+      
+      # FINISH IMPLEMENTING
+    end
   end
 
   describe 'with config and expired auth' do
@@ -357,10 +388,6 @@ describe Geoloqi::Session do
 
       @session.get 'account/username'
       expect { @session.auth[:access_token] == 'access_token4567' }
-    end
-    
-    it 'does not attempt to refresh for auth code expire' do
-      # IMPLEMENT
     end
   end
 end
