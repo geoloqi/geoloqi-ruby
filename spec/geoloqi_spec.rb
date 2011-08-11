@@ -48,6 +48,25 @@ describe Geoloqi do
                                 "scope=can_party_hard" }
     end
   end
+
+  it 'makes get request' do
+    stub_request(:get, "https://api.geoloqi.com/1/quick_get?lol=cats").
+      with(:headers => {'Authorization'=>'OAuth access_token1234'}).
+      to_return(:body => {:result => 'ok'}.to_json)
+    
+    response = Geoloqi.get ACCESS_TOKEN, '/quick_get', :lol => 'cats'
+    expect { response['result'] == 'ok' }
+  end
+  
+  it 'makes post request' do
+    stub_request(:post, "https://api.geoloqi.com/1/quick_post").
+      with(:headers => {'Authorization'=>'OAuth access_token1234'},
+           :body => {:lol => 'dogs'}.to_json).
+      to_return(:body => {:result => 'ok'}.to_json)
+    
+    response = Geoloqi.post ACCESS_TOKEN, '/quick_post', :lol => 'dogs'
+    expect { response['result'] == 'ok' }
+  end
 end
 
 describe Geoloqi::ApiError do

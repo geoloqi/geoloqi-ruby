@@ -11,14 +11,25 @@ Installation
 
 Basic Usage
 ---
-Geoloqi uses OAuth2 for authentication, but if you're only working with your own account, you don't need to go through the authorization steps! Simply go to your account settings on the [Geoloqi site](http://geoloqi.com), click on "Connections" and copy the OAuth 2 Access Token. You can use this token to run the following examples:
+Geoloqi uses OAuth2 for authentication, but if you're only working with your own account, you don't need to go through the authorization steps! Simply go to your account settings on the [Geoloqi site](http://geoloqi.com), click on "Connections" and copy the OAuth 2 Access Token. You can use this token to run the following examples.
+
+If you just need to make simple requests, you can just make a simple get or post request from Geoloqi:
+
+    require 'geoloqi'
+    result = Geoloqi.get 'YOUR ACCESS TOKEN', 'layer/info/Gx'
+    puts response.inspect
+
+    # or a POST!
+    result = Geoloqi.post 'YOUR ACCESS TOKEN', 'layer/create', :name => 'Test Layer'
+
+If you're using Geoloqi with OAuth or making multiple requests, we recommend using the Geoloqi::Session class:
 
 	require 'geoloqi'
-	geoloqi = Geoloqi::Session.new :access_token => 'YOUR OAUTH2 ACCESS TOKEN GOES HERE'
+	geoloqi = Geoloqi::Session.new :access_token => 'YOUR ACCESS TOKEN'
 	response = geoloqi.get 'layer/info/Gx'
 	puts response.inspect
 
-This example returns a hash with the following:
+Which returns a hash with the following:
 
 	{"layer_id"=>"Gx", "user_id"=>"4", "type"=>"normal", "name"=>"USGS Earthquakes",
 	 "description"=>"Real-time notifications of earthquakes near you.",
