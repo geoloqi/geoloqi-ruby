@@ -9,7 +9,7 @@ module Geoloqi
       self.auth = opts[:auth] || {}
       self.auth[:access_token] = opts[:access_token] if opts[:access_token]
 
-      @connection = Faraday.new(:url => API_URL) do |builder|
+      @connection = Faraday.new(:url => Geoloqi.api_url) do |builder|
         builder.response :logger if @config.enable_logging
         builder.adapter  @config.adapter || :net_http
       end
@@ -65,7 +65,7 @@ module Geoloqi
     def execute(meth, path, query=nil)
       query = Rack::Utils.parse_query query if query.is_a?(String)
       raw = @connection.send(meth) do |req|
-        req.url "/#{API_VERSION.to_s}/#{path.gsub(/^\//, '')}"
+        req.url "/#{Geoloqi.api_version.to_s}/#{path.gsub(/^\//, '')}"
         req.headers = headers
 
         if query

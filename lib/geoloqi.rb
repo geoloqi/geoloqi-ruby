@@ -10,14 +10,23 @@ require 'geoloqi/session'
 require 'geoloqi/version'
 
 module Geoloqi
-  API_VERSION = 1
-  API_URL = 'https://api.geoloqi.com'
-  OAUTH_URL = 'https://beta.geoloqi.com/oauth/authorize'
   @@adapter = :net_http
   @@enable_logging = false
   @@config = Config.new
 
   class << self
+    def api_version
+      1
+    end
+
+    def api_url
+      'https://api.geoloqi.com'
+    end
+
+    def oauth_url
+      'https://beta.geoloqi.com/oauth/authorize'
+    end
+    
     def config(opts=nil)
       return @@config if opts.nil?
       @@config = Config.new opts
@@ -37,7 +46,7 @@ module Geoloqi
 
     def authorize_url(client_id=nil, redirect_uri=@@config.redirect_uri, opts={})
       raise "client_id required to authorize url. Pass with Geoloqi.config" unless client_id
-      url = "#{OAUTH_URL}?response_type=code&client_id=#{Rack::Utils.escape client_id}&redirect_uri=#{Rack::Utils.escape redirect_uri}"
+      url = "#{oauth_url}?response_type=code&client_id=#{Rack::Utils.escape client_id}&redirect_uri=#{Rack::Utils.escape redirect_uri}"
       url += "&#{Rack::Utils.build_query opts}" unless opts.empty?
       url
     end
