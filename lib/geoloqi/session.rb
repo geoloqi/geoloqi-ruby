@@ -71,7 +71,13 @@ module Geoloqi
           meth == :get ? req.params = query : req.body = query.to_json
         end
       end
-      @config.logger.puts "Geoloqi::Session - #{meth.to_s.upcase} #{path}?#{Rack::Utils.build_query query}:\nStatus: #{raw.status}\nHeaders: #{raw.headers.inspect}\n#{raw.body}" if @config.logger
+      
+      if @config.logger
+        @config.logger.print "Geoloqi::Session - #{meth.to_s.upcase} #{path}"
+        @config.logger.print Rack::Utils.build_query(query) unless query.nil?
+        @config.logger.puts "\nStatus: #{raw.status}\nHeaders: #{raw.headers.inspect}\n#{raw.body}"
+      end
+      
       Response.new raw.status, raw.headers, raw.body
     end
 

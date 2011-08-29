@@ -103,6 +103,18 @@ describe Geoloqi::Config do
     expect { io.string =~ /Geoloqi::Session/ }
   end
   
+  it 'displays log information if logger is provided and query is nil' do
+    stub_request(:get, api_url('account/username')).
+      with(:headers => {'Authorization'=>'OAuth access_token1234'}).
+      to_return(:body => {'username' => 'bulbasaurrulzok'}.to_json)
+    
+    io = StringIO.new
+    Geoloqi.config :client_id => CLIENT_ID, :client_secret => CLIENT_SECRET, :logger => io
+    
+    Geoloqi.get ACCESS_TOKEN, 'account/username'
+    expect { io.string =~ /Geoloqi::Session/ }
+  end
+  
 
   it 'correctly checks booleans for client_id and client_secret' do
     [:client_id, :client_secret].each do |k|
