@@ -73,9 +73,9 @@ module Geoloqi
       end
       
       if @config.logger
-        @config.logger.print "Geoloqi::Session - #{meth.to_s.upcase} #{path}"
+        @config.logger.print "### Geoloqi::Session - #{meth.to_s.upcase} #{path}"
         @config.logger.print Rack::Utils.build_query(query) unless query.nil?
-        @config.logger.puts "\nStatus: #{raw.status}\nHeaders: #{raw.headers.inspect}\n#{raw.body}"
+        @config.logger.puts "\nStatus: #{raw.status}\nHeaders: #{raw.headers.inspect}\nBody: #{raw.body}"
       end
       
       Response.new raw.status, raw.headers, raw.body
