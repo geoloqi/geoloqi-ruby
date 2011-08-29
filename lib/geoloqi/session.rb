@@ -10,7 +10,6 @@ module Geoloqi
       self.auth[:access_token] = opts[:access_token] if opts[:access_token]
 
       @connection = Faraday.new(:url => Geoloqi.api_url) do |builder|
-        # builder.response :logger if @config.enable_logging
         builder.adapter  @config.adapter || :net_http
       end
     end
@@ -72,7 +71,7 @@ module Geoloqi
           meth == :get ? req.params = query : req.body = query.to_json
         end
       end
-      puts "Geoloqi::Session - #{meth} #{path}?#{Rack::Utils.build_query query} :\n#{raw.status}\n#{raw.headers}\n#{raw.body}" if @config.enable_logging
+      @config.logger.puts "Geoloqi::Session - #{meth.to_s.upcase} #{path}?#{Rack::Utils.build_query query}:\nStatus: #{raw.status}\nHeaders: #{raw.headers.inspect}\n#{raw.body}" if @config.logger
       Response.new raw.status, raw.headers, raw.body
     end
 

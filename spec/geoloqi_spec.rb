@@ -90,10 +90,19 @@ describe Geoloqi::Config do
                                 "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
     end
   end
-
-  it 'throws exception if non-boolean value is fed to logging' do
-    expect { rescuing { Geoloqi.config(:client_id => '', :client_secret => '', :enable_logging => :cats )}.class == Geoloqi::ArgumentError }
+  
+  it 'displays log information if logger is provided' do
+    stub_request(:get, api_url('account/username?cats=lol')).
+      with(:headers => {'Authorization'=>'OAuth access_token1234'}).
+      to_return(:body => {'username' => 'bulbasaurrulzok'}.to_json)
+    
+    io = StringIO.new
+    Geoloqi.config :client_id => CLIENT_ID, :client_secret => CLIENT_SECRET, :logger => io
+    
+    Geoloqi.get ACCESS_TOKEN, 'account/username', :cats => 'lol'
+    expect { io.string =~ /Geoloqi::Session/ }
   end
+  
 
   it 'correctly checks booleans for client_id and client_secret' do
     [:client_id, :client_secret].each do |k|
