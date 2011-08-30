@@ -32,16 +32,16 @@ module Geoloqi
       @@config = Config.new opts
     end
 
-    def get(access_token, path, args={})
-      run :get, access_token, path, args
+    def get(access_token, path, args={}, headers={})
+      run :get, access_token, path, args, headers
     end
 
-    def post(access_token, path, args={})
-      run :post, access_token, path, args
+    def post(access_token, path, args={}, headers={})
+      run :post, access_token, path, args, headers
     end
 
-    def run(meth, access_token, path, args={})
-      Session.new(:access_token => access_token).run meth, path, args
+    def run(meth, access_token, path, args={}, headers={})
+      Session.new(:access_token => access_token).run meth, path, args, headers
     end
 
     def authorize_url(client_id=nil, redirect_uri=@@config.redirect_uri, opts={})

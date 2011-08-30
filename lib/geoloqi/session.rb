@@ -30,20 +30,20 @@ module Geoloqi
       Geoloqi.authorize_url @config.client_id, redirect_uri, opts
     end
 
-    def get(path, query=nil)
-      run :get, path, query
+    def get(path, query=nil, headers={})
+      run :get, path, query, headers
     end
 
-    def post(path, query=nil)
-      run :post, path, query
+    def post(path, query=nil, headers={})
+      run :post, path, query, headers
     end
 
-    def run(meth, path, query=nil)
+    def run(meth, path, query=nil, headers={})
       renew_access_token! if auth[:expires_at] && Time.rfc2822(auth[:expires_at]) <= Time.now && !(path =~ /^\/?oauth\/token$/)
       retry_attempt = 0
 
       begin
-        response = execute meth, path, query
+        response = execute meth, path, query, headers
         hash = JSON.parse response.body
         raise ApiError.new(response.status, hash['error'], hash['error_description']) if hash.is_a?(Hash) && hash['error'] && @config.throw_exceptions
       rescue Geoloqi::ApiError
@@ -61,11 +61,11 @@ module Geoloqi
       @config.use_hashie_mash ? Hashie::Mash.new(hash) : hash
     end
 
-    def execute(meth, path, query=nil)
+    def execute(meth, path, query=nil, headers={})
       query = Rack::Utils.parse_query query if query.is_a?(String)
       raw = @connection.send(meth) do |req|
         req.url "/#{Geoloqi.api_version.to_s}/#{path.gsub(/^\//, '')}"
-        req.headers = headers
+        req.headers = headers.merge! default_headers
 
         if query
           meth == :get ? req.params = query : req.body = query.to_json
@@ -75,7 +75,7 @@ module Geoloqi
       if @config.logger
         @config.logger.print "### Geoloqi::Session - #{meth.to_s.upcase} #{path}"
         @config.logger.print "?#{Rack::Utils.build_query query}" unless query.nil?
-        @config.logger.puts "\nStatus: #{raw.status}\nHeaders: #{raw.headers.inspect}\nBody: #{raw.body}"
+        @config.logger.puts "\n### Status: #{raw.status}\n### Headers: #{raw.headers.inspect}\n### Body: #{raw.body}"
       end
       
       Response.new raw.status, raw.headers, raw.body
@@ -109,7 +109,7 @@ module Geoloqi
       expires_in.to_i.zero? ? nil : ((Time.now + expires_in.to_i)-5).rfc2822
     end
 
-    def headers
+    def default_headers
       headers = {'Content-Type' => 'application/json', 'User-Agent' => "geoloqi-ruby #{Geoloqi.version}", 'Accept' => 'application/json'}
       headers['Authorization'] = "OAuth #{access_token}" if access_token
       headers
