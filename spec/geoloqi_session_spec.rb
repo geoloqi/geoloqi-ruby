@@ -21,6 +21,28 @@ describe Geoloqi::Session do
     end
   end
 
+  describe 'custom exceptions scheme' do
+    before do
+      @session = Geoloqi::Session.new :access_token => 'access_token1234', :config => {:use_dynamic_exceptions => true}
+    end
+
+    it 'should throw api error exception with custom name' do
+      stub_request(:get, api_url('specialerror')).
+              with(:headers => auth_headers).
+              to_return(:status => 404, :body => {'error' => 'not_found'}.to_json)
+
+      expect { rescuing {@session.get('specialerror')}.class == Geoloqi::NotFoundError }
+    end
+    
+    it 'should throw api error exception without custom name if empty' do
+      stub_request(:get, api_url('specialerror')).
+              with(:headers => auth_headers).
+              to_return(:status => 404, :body => {'error' => ''}.to_json)
+
+      expect { rescuing {@session.get('specialerror')}.class == Geoloqi::ApiError }
+    end
+  end
+
   describe 'with access token and throw exceptions false' do
     before do
       @session = Geoloqi::Session.new :access_token => 'access_token1234', :config => {:throw_exceptions => false}
