@@ -73,21 +73,23 @@ module Geoloqi
 
     def execute(meth, path, query=nil, headers={})
       query = Rack::Utils.parse_query query if query.is_a?(String)
+      headers = headers.merge! default_headers
+
       raw = @connection.send(meth) do |req|
         req.url "/#{Geoloqi.api_version.to_s}/#{path.gsub(/^\//, '')}"
-        req.headers = headers.merge! default_headers
-
+        req.headers = headers
         if query
           meth == :get ? req.params = query : req.body = query.to_json
         end
       end
-      
+
       if @config.logger
         @config.logger.print "### Geoloqi::Session - #{meth.to_s.upcase} #{path}"
         @config.logger.print "?#{Rack::Utils.build_query query}" unless query.nil?
-        @config.logger.puts "\n### Status: #{raw.status}\n### Headers: #{raw.headers.inspect}\n### Body: #{raw.body}"
+        @config.logger.puts "\n### Request Headers: #{headers.inspect}"
+        @config.logger.puts "### Status: #{raw.status}\n### Headers: #{raw.headers.inspect}\n### Body: #{raw.body}"
       end
-      
+
       Response.new raw.status, raw.headers, raw.body
     end
 
