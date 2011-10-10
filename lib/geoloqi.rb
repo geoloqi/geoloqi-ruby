@@ -26,7 +26,7 @@ module Geoloqi
     def oauth_url
       'https://beta.geoloqi.com/oauth/authorize'
     end
-    
+
     def config(opts=nil)
       return @@config if opts.nil?
       @@config = Config.new opts
