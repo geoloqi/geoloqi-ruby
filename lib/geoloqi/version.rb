@@ -1,5 +1,5 @@
 module Geoloqi
   def self.version
-    '0.9.28'
+    '0.9.29'
   end
 end
