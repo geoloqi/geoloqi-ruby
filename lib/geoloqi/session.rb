@@ -73,7 +73,7 @@ module Geoloqi
 
     def execute(meth, path, query=nil, headers={})
       query = Rack::Utils.parse_query query if query.is_a?(String)
-      headers = headers.merge! default_headers
+      headers = default_headers.merge! headers
 
       raw = @connection.send(meth) do |req|
         req.url "/#{Geoloqi.api_version.to_s}/#{path.gsub(/^\//, '')}"
