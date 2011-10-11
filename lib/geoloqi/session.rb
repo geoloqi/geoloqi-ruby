@@ -48,7 +48,7 @@ module Geoloqi
 
         if hash.is_a?(Hash) && hash['error'] && @config.throw_exceptions
           if @config.use_dynamic_exceptions && !hash['error'].nil? && !hash['error'].empty?
-            exception_class_name = hash['error'].split('_').collect {|w| w.capitalize}.join+'Error'
+            exception_class_name = hash['error'].gsub(/\W+/, '_').split('_').collect {|w| w.capitalize}.join+'Error'
             Geoloqi.const_set exception_class_name, Class.new(Geoloqi::ApiError) unless Geoloqi.const_defined? exception_class_name
             raise_class = Geoloqi.const_get exception_class_name
           else
