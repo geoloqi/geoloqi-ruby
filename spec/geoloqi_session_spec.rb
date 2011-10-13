@@ -269,6 +269,23 @@ describe Geoloqi::Session do
     end
   end
 
+  describe 'the establish method' do
+    before do
+      @session = Geoloqi::Session.new :config => {:client_id => CLIENT_ID, :client_secret => CLIENT_SECRET}
+    end
+    
+    it 'retreives auth data from new oauth2 server' do
+      stub_request(:post, "https://auth.geoloqi.com/22/oauth/token").
+        with(:body => {:client_id => 'client_id1234', :client_secret => 'client_secret1234', :grant_type => 'authorization_code', :code => 'code1234', :redirect_uri => 'http://example.org'}.to_json,
+             :headers => {'Accept'=>'application/json', 'Content-Type'=>'application/json', 'Authorization' => 'Basic Y2xpZW50X2lkMTIzNDpjbGllbnRfc2VjcmV0MTIzNA=='}).
+        to_return(:status => 200, :body => {:access_token => 'access_token1234', :refresh_token => 'refresh_token1234', :expires_in => 3600, :token_type => 'bearer'}.to_json)
+
+      response = @session.get_auth 'code1234', 'http://example.org'
+      expect response == true
+    end
+    
+  end
+
   describe 'with config and expired auth' do
     before do
       @session = Geoloqi::Session.new :config => {:client_id => CLIENT_ID, :client_secret => CLIENT_SECRET},

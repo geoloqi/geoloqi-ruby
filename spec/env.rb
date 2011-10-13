@@ -9,6 +9,7 @@ require 'webmock'
 CLIENT_ID = 'client_id1234'
 CLIENT_SECRET = 'client_secret1234'
 ACCESS_TOKEN = 'access_token1234'
+HTTP_BASIC_AUTH = 'Basic Y2xpZW50X2lkMTIzNDpjbGllbnRfc2VjcmV0MTIzNA=='
 
 def auth_headers(access_token='access_token1234')
   {'Content-Type' => 'application/json',

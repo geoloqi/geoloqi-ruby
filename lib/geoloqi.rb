@@ -18,9 +18,17 @@ module Geoloqi
     def api_version
       1
     end
+    
+    def oauth_api_version
+      22
+    end
 
     def api_url
       'https://api.geoloqi.com'
+    end
+    
+    def oauth_api_url
+      'https://auth.geoloqi.com'
     end
 
     def oauth_url

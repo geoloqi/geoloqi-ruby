@@ -8,10 +8,6 @@ module Geoloqi
       @config = opts[:config] || (Geoloqi.config || Geoloqi::Config.new)
       self.auth = opts[:auth] || {}
       self.auth[:access_token] = opts[:access_token] if opts[:access_token]
-
-      @connection = Faraday.new(:url => Geoloqi.api_url) do |builder|
-        builder.adapter  @config.adapter || :net_http
-      end
     end
 
     def auth=(hash)
@@ -71,12 +67,12 @@ module Geoloqi
       @config.use_hashie_mash ? Hashie::Mash.new(hash) : hash
     end
 
-    def execute(meth, path, query=nil, headers={})
+    def execute(meth, path, query=nil, headers={}, oauth=false)
       query = Rack::Utils.parse_query query if query.is_a?(String)
       headers = default_headers.merge! headers
-
-      raw = @connection.send(meth) do |req|
-        req.url "/#{Geoloqi.api_version.to_s}/#{path.gsub(/^\//, '')}"
+      conn = oauth ? oauth_connection : connection
+      raw = conn.send(meth) do |req|
+        req.url "#{oauth ? Geoloqi.oauth_api_version : Geoloqi.api_version}/#{path.gsub(/^\//, '')}"
         req.headers = headers
         if query
           meth == :get ? req.params = query : req.body = query.to_json
@@ -95,8 +91,8 @@ module Geoloqi
 
     def establish(opts={})
       require 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
-      auth = post 'oauth/token', {:client_id => @config.client_id,
-                                  :client_secret => @config.client_secret}.merge!(opts)
+
+      auth = execute :post, 'oauth/token', opts, authorization_header, true
 
       # expires_at is likely incorrect. I'm chopping 5 seconds
       # off to allow for a more graceful failover.
@@ -114,6 +110,18 @@ module Geoloqi
     end
 
     private
+
+    def connection
+      Faraday.new(:url => Geoloqi.api_url) { |builder| builder.adapter(@config.adapter || :net_http) }
+    end
+    
+    def oauth_connection
+      Faraday.new(:url => Geoloqi.oauth_api_url) { |builder| builder.adapter(@config.adapter || :net_http) }
+    end
+
+    def authorization_header
+      {'Authorization' => 'Basic '+Base64.strict_encode64("#{config.client_id}:#{config.client_secret}")}
+    end
 
     def auth_expires_at(expires_in=nil)
       # expires_at is likely incorrect. I'm chopping 5 seconds
