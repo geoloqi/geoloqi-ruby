@@ -24,7 +24,7 @@ module Geoloqi
     end
 
     def oauth_url
-      'https://beta.geoloqi.com/oauth/authorize'
+      'https://geoloqi.com/oauth/authorize'
     end
 
     def config(opts=nil)

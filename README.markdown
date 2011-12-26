@@ -76,71 +76,30 @@ Want to access in a more OOP/JSON style way? Use Hashie::Mash as the response ob
 Implementing OAuth2
 ---
 
-OAuth2 has been implemented so that it's very easy to store the session's authorization data in a hash. If the access token expires or becomes invalid, the refresh token is used to retrieve a fresh token. This is done automatically, so you don't have to worry about it. Just store the hash in a session, feed it back in on each request and you're good to go.
+Implementing OAuth2 is easy! We did all the hard work for you.
 
-Here is a simple Sinatra example implementing the OAuth2 flow with Geoloqi:
+To demonstrate, there is a great, simple Geoloqi plugin for Sinatra! Here it is in action:
 
-	require 'rubygems'
-	require 'sinatra'
-	require 'geoloqi'
+    require 'sinatra'
+    require 'sinatra/geoloqi'
 
-	GEOLOQI_REDIRECT_URI = 'http://yourwebsite.net'
+    set :geoloqi_client_id,     'YOUR_APP_ID_GOES_HERE'
+    set :geoloqi_client_secret, 'YOUR_APP_SECRET_GOES_HERE'
+    set :geoloqi_redirect_uri,  'http://127.0.0.1:4567'
+    set :session_secret,        'ENTER_RANDOM_TEXT_HERE'
 
-	enable :sessions
-	set :session_secret, 'PUT A SECRET WORD HERE' # Encrypts the cookie session.. recommended.
+    before do
+      require_geoloqi_login
+    end
 
-	def geoloqi
-	  @geoloqi ||= Geoloqi::Session.new :auth => session[:geoloqi_auth],
-	                                    :config => {:client_id => 'YOUR OAUTH CLIENT ID',
-	                                                :client_secret => 'YOUR CLIENT SECRET'}
-	end
-	
-	# If the access token expires, Geoloqi::Session will refresh inline!
-	# This after block makes sure the session gets the updated config.
-	after do
-	  session[:geoloqi_auth] = @geoloqi.auth
-	end
-  
-	get '/?' do
-	  geoloqi.get_auth(params[:code], GEOLOQI_REDIRECT_URI) if params[:code] && !geoloqi.access_token?
-	  redirect geoloqi.authorize_url(GEOLOQI_REDIRECT_URI) unless geoloqi.access_token?
-    
-	  username = geoloqi.get('account/username')['username']
-	  "You have successfully logged in as #{username}!"
-	end
+    get '/?' do
+      username = geoloqi.get('account/username')['username']
+      "You have successfully logged in as #{username}!"
+    end
 
-Now, here's a power example: Uses [sinatra-synchrony](http://github.com/kyledrake/sinatra-synchrony) to provide a massive concurrency improvement via EventMachine. This will allow your app to serve other requests, the app will not hang while waiting for content from the Geoloqi API. Works on anything that supports Thin (Rack, EY, Heroku, etc):
+Click here to read more: [sinatra-geoloqi](https://github.com/geoloqi/sinatra-geoloqi)
 
-	# To install deps: gem install sinatra sinatra-synchrony geoloqi
-	# To run from command line: ruby sinatra_synchrony.rb -s thin
-	require 'rubygems'
-	require 'sinatra'
-	require 'sinatra/synchrony'
-	require 'geoloqi'
-
-	GEOLOQI_REDIRECT_URI = 'http://example.com'
-
-	enable :sessions
-	set :session_secret, 'PUT A SECRET WORD HERE'
-
-	configure do
-	  Geoloqi.config :client_id => 'YOUR OAUTH CLIENT ID', :client_secret => 'YOUR CLIENT SECRET', :adapter => :em_synchrony
-	end
-
-	def geoloqi
-	  @geoloqi ||= Geoloqi::Session.new :auth => session[:geoloqi_auth]
-	end
-	
-	after do
-	  session[:geoloqi_auth] = @geoloqi.auth
-	end
-
-	get '/?' do
-	  session[:geoloqi_auth] = geoloqi.get_auth(params[:code], GEOLOQI_REDIRECT_URI) if params[:code] && !geoloqi.access_token?
-	  redirect geoloqi.authorize_url(GEOLOQI_REDIRECT_URI) unless geoloqi.access_token?
-	  username = geoloqi.get('account/username')['username']
-	  "You have successfully logged in as #{username}!"
-	end
+There are also examples of how to implement Geoloqi's OAuth2 in the examples folder, for anyone working to embed with other frameworks (such as Ruby on Rails). Examples are also provided for integration with [sinatra-synchrony](http://github.com/kyledrake/sinatra-synchrony).
 
 Found a bug?
 ---
@@ -153,6 +112,5 @@ Authors
 
 TODO / Possible projects
 ---
-* Plugin for Sinatra
 * Rails plugin (works fine as-is, but maybe we can make it easier?)
 * More Concrete API in addition to the simple one?
