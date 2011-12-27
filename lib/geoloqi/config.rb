@@ -1,6 +1,7 @@
 module Geoloqi
   class Config
     attr_accessor :client_id, :client_secret, :redirect_uri, :adapter, :logger, :use_hashie_mash, :throw_exceptions, :use_dynamic_exceptions, :symbolize_names
+
     def initialize(opts={})
       self.use_hashie_mash ||= false
       self.throw_exceptions ||= true
