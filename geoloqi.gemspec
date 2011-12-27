@@ -3,7 +3,7 @@ Gem::Specification.new do |s|
   s.name = 'geoloqi'
   s.version = Geoloqi.version
   s.authors = ['Kyle Drake', 'Aaron Parecki']
-  s.email = ['kyledrake@gmail.com', 'aaron@parecki.com']
+  s.email = ['kyle@geoloqi.com', 'aaron@geoloqi.com']
   s.homepage = 'http://github.com/geoloqi/geoloqi-ruby'
   s.summary = 'Powerful, flexible, lightweight interface to the awesome Geoloqi platform API'
   s.description = 'Powerful, flexible, lightweight interface to the awesome Geoloqi platform API! Uses Faraday, '+

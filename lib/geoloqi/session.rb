@@ -2,6 +2,7 @@ module Geoloqi
   class Session
     attr_reader :auth
     attr_accessor :config
+    attr_reader :response
 
     def initialize(opts={})
       opts[:config] = Geoloqi::Config.new opts[:config] if opts[:config].is_a? Hash
@@ -68,6 +69,7 @@ module Geoloqi
       rescue JSON::ParserError
         raise Geoloqi::Error, "API returned invalid JSON. Status: #{response.status} Body: #{response.body}"
       end
+      @response = response # Make the response object available to the caller
       @config.use_hashie_mash ? Hashie::Mash.new(hash) : hash
     end
 
