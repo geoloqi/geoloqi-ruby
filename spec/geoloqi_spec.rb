@@ -33,7 +33,7 @@ describe Geoloqi do
       to_return(:body => {:result => 'ok'}.to_json)
 
     response = Geoloqi.get ACCESS_TOKEN, '/quick_get', {:lol => 'cats'}, 'Special' => 'header'
-    expect { response['result'] == 'ok' }
+    expect { response[:result] == 'ok' }
   end
 
   it 'makes post request' do
@@ -43,6 +43,6 @@ describe Geoloqi do
       to_return(:body => {:result => 'ok'}.to_json)
 
     response = Geoloqi.post ACCESS_TOKEN, '/quick_post', {:lol => 'dogs'}, 'Special' => 'header'
-    expect { response['result'] == 'ok' }
+    expect { response[:result] == 'ok' }
   end
 end

@@ -44,21 +44,21 @@ module Geoloqi
 
       begin
         response = execute meth, path, query, headers
-        hash = JSON.parse response.body
+        hash = JSON.parse response.body, :symbolize_names => @config.symbolize_names
 
-        if hash.is_a?(Hash) && hash['error'] && @config.throw_exceptions
-          if @config.use_dynamic_exceptions && !hash['error'].nil? && !hash['error'].empty?
-            exception_class_name = hash['error'].gsub(/\W+/, '_').split('_').collect {|w| w.capitalize}.join+'Error'
+        if hash.is_a?(Hash) && hash[:error] && @config.throw_exceptions
+          if @config.use_dynamic_exceptions && !hash[:error].nil? && !hash[:error].empty?
+            exception_class_name = hash[:error].gsub(/\W+/, '_').split('_').collect {|w| w.capitalize}.join+'Error'
             Geoloqi.const_set exception_class_name, Class.new(Geoloqi::ApiError) unless Geoloqi.const_defined? exception_class_name
             raise_class = Geoloqi.const_get exception_class_name
           else
             raise_class = ApiError
           end
-          raise raise_class.new(response.status, hash['error'], hash['error_description'])
+          raise raise_class.new(response.status, hash[:error], hash[:error_description])
         end
       rescue Geoloqi::ApiError
         raise Error.new('Unable to procure fresh access token from API on second attempt') if retry_attempt > 0
-        if hash['error'] == 'expired_token' && !(hash['error_description'] =~ /The auth code expired/)
+        if hash[:error] == 'expired_token' && !(hash[:error_description] =~ /The auth code expired/)
           renew_access_token!
           retry_attempt += 1
           retry

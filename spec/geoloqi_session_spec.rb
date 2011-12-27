@@ -15,7 +15,7 @@ describe Geoloqi::Session do
     it 'should throw api error exception' do
       stub_request(:get, api_url('badmethodcall')).
               with(:headers => auth_headers).
-              to_return(:status => 404, :body => {'error' => 'not_found'}.to_json)
+              to_return(:status => 404, :body => {:error => 'not_found'}.to_json)
 
       expect { rescuing {Geoloqi::Session.new(:access_token => 'access_token1234').get('badmethodcall')}.class == Geoloqi::ApiError }
     end
@@ -23,13 +23,14 @@ describe Geoloqi::Session do
 
   describe 'custom exceptions scheme' do
     before do
-      @session = Geoloqi::Session.new :access_token => 'access_token1234', :config => {:use_dynamic_exceptions => true}
+      @session = Geoloqi::Session.new :access_token => 'access_token1234', :config => {:throw_exceptions => true,
+                                                                                       :use_dynamic_exceptions => true}
     end
 
     it 'should throw api error exception with custom name' do
       stub_request(:get, api_url('specialerror')).
               with(:headers => auth_headers).
-              to_return(:status => 404, :body => {'error' => 'not_found'}.to_json)
+              to_return(:status => 404, :body => {:error => 'not_found'}.to_json)
 
       expect { rescuing {@session.get('specialerror')}.class == Geoloqi::NotFoundError }
     end
@@ -37,7 +38,7 @@ describe Geoloqi::Session do
     it 'should throw api error exception without custom name if empty' do
       stub_request(:get, api_url('specialerror')).
               with(:headers => auth_headers).
-              to_return(:status => 404, :body => {'error' => ''}.to_json)
+              to_return(:status => 404, :body => {:error => ''}.to_json)
 
       expect { rescuing {@session.get('specialerror')}.class == Geoloqi::ApiError }
     end
@@ -51,10 +52,10 @@ describe Geoloqi::Session do
     it 'should not throw api error exception' do
       stub_request(:get, api_url('badmethodcall')).
               with(:headers => auth_headers).
-              to_return(:status => 404, :body => {'error' => 'not_found'}.to_json)
+              to_return(:status => 404, :body => {:error => 'not_found'}.to_json)
 
       response = @session.get 'badmethodcall'
-      expect {response['error'] == 'not_found'}
+      expect {response[:error] == 'not_found'}
     end
   end
 
@@ -66,7 +67,7 @@ describe Geoloqi::Session do
     it 'should respond to method calls in addition to hash' do
       stub_request(:get, api_url('account/username')).
         with(:headers => {'Authorization'=>'OAuth access_token1234'}).
-        to_return(:body => {'username' => 'bulbasaurrulzok'}.to_json)
+        to_return(:body => {:username => 'bulbasaurrulzok'}.to_json)
 
       response = @session.get 'account/username'
       expect { response['username'] == 'bulbasaurrulzok' }
@@ -95,18 +96,18 @@ describe Geoloqi::Session do
     it 'successfully makes call with array' do
       stub_request(:post, api_url('play_record_at_geoloqi_hq')).
         with(:headers => auth_headers, :body => [{:artist => 'Television'}].to_json).
-        to_return(:body => {'result' => 'ok'}.to_json)
+        to_return(:body => {:result => 'ok'}.to_json)
 
-      expect { @session.post('play_record_at_geoloqi_hq', [{:artist => 'Television'}])['result'] == 'ok' }
+      expect { @session.post('play_record_at_geoloqi_hq', [{:artist => 'Television'}])[:result] == 'ok' }
     end
 
     it 'successfully makes call to api' do
       stub_request(:get, api_url('layer/info/Gx')).
         with(:headers => auth_headers).
-        to_return(:status => 200, :body => {'layer_id' => 'Gx'}.to_json)
+        to_return(:status => 200, :body => {:layer_id => 'Gx'}.to_json)
 
       %w{/layer/info/Gx layer/info/Gx}.each do |path|
-        expect { @session.get(path)['layer_id'] == 'Gx' }
+        expect { @session.get(path)[:layer_id] == 'Gx' }
       end
     end
 
@@ -118,15 +119,15 @@ describe Geoloqi::Session do
       end
 
       it 'makes a location/history call with get and hash params' do
-        expect { @session.get('location/history', :count => 2)['points'].count == 2 }
+        expect { @session.get('location/history', :count => 2)[:points].count == 2 }
       end
 
       it 'makes a location/history call with get and query string directly in path' do
-        expect { @session.get('location/history?count=2')['points'].count == 2 }
+        expect { @session.get('location/history?count=2')[:points].count == 2 }
       end
 
       it 'makes a location/history call with get and query string params' do
-        expect { @session.get('location/history', 'count=2')['points'].count == 2 }
+        expect { @session.get('location/history', 'count=2')[:points].count == 2 }
       end
     end
   end
@@ -182,7 +183,7 @@ describe Geoloqi::Session do
     it 'fails with an exception' do
       stub_request(:post, api_url('message/send')).
               with(:headers => auth_headers('hey brah whats up let me in its cool 8)')).
-              to_return(:status => 401, :body => {'error' => 'invalid_token'}.to_json)
+              to_return(:status => 401, :body => {:error => 'invalid_token'}.to_json)
 
       begin
         @session.post 'message/send'
@@ -215,9 +216,9 @@ describe Geoloqi::Session do
       response = @session.get_auth '1234', 'http://example.com'
 
       {:access_token => 'access_token1234',
-                            :scope => nil,
-                            :expires_in => '86400',
-                            :refresh_token => 'refresh_token1234'}.each do |k,v|
+       :scope => nil,
+       :expires_in => '86400',
+       :refresh_token => 'refresh_token1234'}.each do |k,v|
         expect { response[k] == v }
       end
     end
@@ -246,7 +247,7 @@ describe Geoloqi::Session do
       response = @session.get 'account/username'
 
       expect { @session.auth[:access_token] == 'access_token1234' }
-      expect { response['username'] == 'bulbasaurrulzok' }
+      expect { response[:username] == 'bulbasaurrulzok' }
     end
     
     it 'does not attempt to refresh for auth code expire' do
@@ -292,7 +293,7 @@ describe Geoloqi::Session do
 
       stub_request(:get, api_url('account/username')).
         with(:headers => {'Authorization'=>'OAuth access_token4567'}).
-        to_return(:body => {'username' => 'pikachu4lyfe'}.to_json)
+        to_return(:body => {:username => 'pikachu4lyfe'}.to_json)
 
       @session.get 'account/username'
       expect { @session.auth[:access_token] == 'access_token4567' }

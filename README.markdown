@@ -1,6 +1,6 @@
 Geoloqi Library for Ruby [![](https://secure.travis-ci.org/geoloqi/geoloqi-ruby.png)](http://travis-ci.org/geoloqi/geoloqi-ruby)
 ===
-Powerful, flexible, lightweight interface to the awesome Geoloqi platform API! Uses Faraday, and can be used with Ruby 1.9 and EM-Synchrony for really fast, highly concurrent development.
+Powerful, flexible, lightweight interface to the Geoloqi platform API.
 
 This library was developed with two goals in mind: to be as simple as possible, but also to be very powerful to allow for much higher-end development (multiple Geoloqi apps per instance, concurrency, performance).
 
@@ -11,7 +11,7 @@ Installation
 
 Basic Usage
 ---
-Geoloqi uses OAuth2 for authentication, but if you're only working with your own account, you don't need to go through the authorization steps! Simply go to your account settings on the [Geoloqi site](http://geoloqi.com), click on "Connections" and copy the OAuth 2 Access Token. You can use this token to run the following examples.
+Geoloqi uses OAuth2 for authentication, but if you're only working with your own account, you don't need to go through the authorization steps. Simply go to your account settings on the [Geoloqi Developers Site](https://developers.geoloqi.com), click on "Get Started" and copy the permanent access token. You can use this token to run the following examples.
 
 If you just need to make simple requests, you can just make a simple get or post request from Geoloqi:
 
@@ -50,12 +50,6 @@ Both GET and POST are supported. To send a POST to create a place (in this case,
 	  }
 	}
 
-This returns response['place_id'], which you can use to store and/or remove the place:
-
-	response = geoloqi.post "place/delete/#{response['place_id']}"
-
-Which returns response['result'] with a value of "ok".
-
 You can send query string parameters with get requests too:
 
 	geoloqi.get 'location/history', :count => 2
@@ -66,6 +60,7 @@ Hashie::Mash support
 ---
 Want to access in a more OOP/JSON style way? Use Hashie::Mash as the response object:
 
+    require 'hashie'
     require 'geoloqi'
     geoloqi = Geoloqi::Session.new :access_token => 'YOUR OAUTH2 ACCESS TOKEN GOES HERE', :config => {:use_hashie_mash => true}
     response = geoloqi.get 'layer/info/Gx'
@@ -76,9 +71,9 @@ Want to access in a more OOP/JSON style way? Use Hashie::Mash as the response ob
 Implementing OAuth2
 ---
 
-Implementing OAuth2 is easy! We did all the hard work for you.
+We have integrated OAuth2 support into the gem for your convenience, and provided a Geoloqi plugin for Sinatra. This is all it takes to get a "Hello World" for OAuth2 with Geoloqi:
 
-To demonstrate, there is a great, simple Geoloqi plugin for Sinatra! Here it is in action:
+Implementing OAuth2 is not difficult, because we've done all the hard work for you. Here is a  code example:
 
     require 'sinatra'
     require 'sinatra/geoloqi'
@@ -97,9 +92,9 @@ To demonstrate, there is a great, simple Geoloqi plugin for Sinatra! Here it is 
       "You have successfully logged in as #{username}!"
     end
 
-Click here to read more: [sinatra-geoloqi](https://github.com/geoloqi/sinatra-geoloqi)
+Visit the [Geoloqi Sinatra plugin](http://geoloqi/sinatra-geoloqi) page to see instructions on usage.
 
-There are also examples of how to implement Geoloqi's OAuth2 in the examples folder, for anyone working to embed with other frameworks (such as Ruby on Rails). Examples are also provided for integration with [sinatra-synchrony](http://github.com/kyledrake/sinatra-synchrony).
+A lower-level demonstration of the OAuth2 code can be found in the examples folder. This may be useful for anyone working to embed with other frameworks (such as Ruby on Rails).
 
 Found a bug?
 ---

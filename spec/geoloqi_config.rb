@@ -27,7 +27,7 @@ describe Geoloqi::Config do
   it 'displays log information if logger is provided and query is nil' do
     stub_request(:get, api_url('account/username')).
       with(:headers => {'Authorization'=>'OAuth access_token1234'}).
-      to_return(:body => {'username' => 'bulbasaurrulzok'}.to_json)
+      to_return(:body => {:username => 'bulbasaurrulzok'}.to_json)
     
     io = StringIO.new
     Geoloqi.config :client_id => CLIENT_ID, :client_secret => CLIENT_SECRET, :logger => io
