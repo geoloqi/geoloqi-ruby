@@ -22,4 +22,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'minitest', '= 2.2.2'
   s.add_development_dependency 'webmock', '= 1.6.4'
   s.add_development_dependency 'hashie',  '= 1.0.0'
+  s.add_development_dependency 'yard'
 end
