@@ -10,7 +10,10 @@ require 'geoloqi/session'
 require 'geoloqi/version'
 
 module Geoloqi
+  # Location of the Bundle of CA Root Certificates.
   SSL_CERT_FILE = File.join(File.dirname(__FILE__), 'geoloqi/data/ca-certificates.crt')
+  
+  # Location of the global {Geoloqi::Config} object
   @@config = Config.new
 
   class << self
