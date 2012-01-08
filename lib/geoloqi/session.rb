@@ -1,8 +1,27 @@
 module Geoloqi
+  # This class is used to instantiate a session object. It is designed to be thread safe, and multiple sessions can be used simultaneously,
+  # allowing for one ruby application to potentially handle multiple Geoloqi applications.
+  #
+  # @example
+  #  # Instantiate a session with your access token (obtained from the Geoloqi Developers Site):
+  #  session = Geoloqi::Session.new :access_token => 'YOUR ACCESS TOKEN'
+  #
+  #  # Instantiate a session with a custom config:
+  #  session = Geoloqi::Session.new :access_token => 'YOUR ACCESS TOKEN', :config => {:use_hashie_mash => true}
+  #
+  #  # Instantiate a session with OAuth2 credentials (obtained from the Geoloqi Developers Site):
+  #  session = Geoloqi::Session.new :config => {:client_id => 'CLIENT ID', :client_secret => 'CLIENT SECRET'}
+  #
+  #  # Get profile:
+  #  result = session.get 'account/profile'
   class Session
+    # This is the auth Hash, which is provided by the OAuth2 response. This can be stored externally and used to re-initialize the session.
+    # @return [Hash]
     attr_reader :auth
+    
+    # This is the config object attached to this session. It is unique to this session.
+    # @return [Geoloqi::Config]
     attr_accessor :config
-    attr_reader :response
 
     def initialize(opts={})
       opts[:config] = Geoloqi::Config.new opts[:config] if opts[:config].is_a? Hash
@@ -19,26 +38,72 @@ module Geoloqi
       @auth = hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
     end
 
+    # The access token for this session.
+    # @return [String]
     def access_token
       @auth[:access_token]
     end
 
+    # Determines if the access token exists.
+    # @return [Boolean]
     def access_token?
       !access_token.nil?
     end
 
+    # The authorize url for this session.
+    #
+    # @return [String]
     def authorize_url(redirect_uri=@config.redirect_uri, opts={})
       Geoloqi.authorize_url @config.client_id, redirect_uri, opts
     end
 
+    # Makes a GET request to the Geoloqi API server and returns response.
+    #
+    # @param [String] path
+    #   Path to the resource being requested (example: '/account/profile').
+    #
+    # @param [String, Hash] query (optional)
+    #   A query string or Hash to be appended to the request.
+    #
+    # @param [Hash] headers (optional)
+    #   Adds and overwrites headers in request sent to server.
+    #
+    # @return [Hash] by default, [Hashie::Mash] if enabled in config.
+    # @example
+    #  # Get your user profile
+    #  response = session.get 'YOUR ACCESS TOKEN', 'account/profile'
+    #
+    #  # Get the last 5 locations
+    #  response = session.get 'YOUR ACCESS TOKEN', 'account/profile', :count => 5
     def get(path, query=nil, headers={})
       run :get, path, query, headers
     end
 
+    # Makes a POST request to the Geoloqi API server and returns response.
+    #
+    # @param [String] path
+    #   Path to the resource being requested (example: '/account/profile').
+    #
+    # @param [String, Hash] query (optional)
+    #   A query string or Hash to be converted to POST parameters.
+    #
+    # @param [Hash] headers (optional)
+    #   Adds and overwrites headers in request sent to server.
+    #
+    # @return [Hash] by default, [Hashie::Mash] if enabled in config.
+    # @example
+    #  # Create a new layer
+    #  Geoloqi.post 'YOUR ACCESS TOKEN', 'layer/create', :name => 'Portland Food Carts'
     def post(path, query=nil, headers={})
       run :post, path, query, headers
     end
 
+    # Makes a one-time request to the Geoloqi API server.
+    # 
+    # @return [Hash] by default, [Hashie::Mash] if enabled in config.
+    # @example
+    #  # Create a new layer
+    #  session.post 'YOUR ACCESS TOKEN', 'layer/create', :name => 'Northeast Portland'
     def run(meth, path, query=nil, headers={})
       renew_access_token! if auth[:expires_at] && Time.rfc2822(auth[:expires_at]) <= Time.now && !(path =~ /^\/?oauth\/token$/)
       retry_attempt = 0
@@ -69,7 +134,6 @@ module Geoloqi
       rescue JSON::ParserError
         raise Geoloqi::Error, "API returned invalid JSON. Status: #{response.status} Body: #{response.body}"
       end
-      @response = response # Make the response object available to the caller
       @config.use_hashie_mash ? Hashie::Mash.new(hash) : hash
     end
 

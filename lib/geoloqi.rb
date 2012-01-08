@@ -64,20 +64,20 @@ module Geoloqi
 
     # Makes a one-time POST request to the Geoloqi API. You can retreive your access token from the Geoloqi Developers Site.
     #
-    # @return [Hash] by default, [Hashie::Mash] if <tt>:use_hashie_mash</tt> is true in the config.
+    # @return [Hash] by default, [Hashie::Mash] if enabled in config.
     # @example
     #  # Create a new layer
-    #  Geoloqi.post 'YOUR_ACCESS_TOKEN', 'layer/create', :name => 'Northeast Portland'
+    #  Geoloqi.post 'YOUR ACCESS TOKEN', 'layer/create', :name => 'Portland Food Carts'
     def post(access_token, path, args={}, headers={})
       run :post, access_token, path, args, headers
     end
 
     # Makes a one-time request to the Geoloqi API. You can retreive your access token from the Geoloqi Developers Site.
     #
-    # @return [Hash] by default, [Hashie::Mash] if <tt>:use_hashie_mash</tt> is true in the config.
+    # @return [Hash] by default, [Hashie::Mash] if enabled in config.
     # @example
     #  # Retrieve your profile
-    #  Geoloqi.run :get, 'YOUR_ACCESS_TOKEN', 'account/profile'
+    #  Geoloqi.run :get, 'YOUR ACCESS TOKEN', 'account/profile'
     def run(meth, access_token, path, args={}, headers={})
       Session.new(:access_token => access_token).run meth, path, args, headers
     end
