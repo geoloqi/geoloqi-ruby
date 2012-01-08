@@ -1,4 +1,4 @@
-require File.join File.dirname(__FILE__), 'env.rb'
+require File.join File.dirname(__FILE__), '..', 'env.rb'
 
 describe Geoloqi::ApiError do
   it 'throws exception properly and allows drill-down of message' do

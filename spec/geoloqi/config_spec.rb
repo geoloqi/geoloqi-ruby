@@ -1,4 +1,4 @@
-require File.join File.dirname(__FILE__), 'env.rb'
+require File.join File.dirname(__FILE__), '..', 'env.rb'
 
 describe Geoloqi::Config do
   describe 'with redirect_uri' do
