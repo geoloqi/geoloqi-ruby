@@ -1,28 +1,39 @@
+require 'thread'
+
 module Geoloqi
-  # This class is used to instantiate a session object. It is designed to be thread safe, and multiple sessions can be used simultaneously,
-  # allowing for one ruby application to potentially handle multiple Geoloqi applications.
+  # This class is used to instantiate a session object. It is designed to be thread safe, and multiple sessions can be used
+  # simultaneously, allowing for one ruby application to potentially handle multiple Geoloqi applications.
   #
   # @example
   #  # Instantiate a session with your access token (obtained from the Geoloqi Developers Site):
-  #  session = Geoloqi::Session.new :access_token => 'YOUR ACCESS TOKEN'
+  #  geoloqi_session = Geoloqi::Session.new :access_token => 'YOUR ACCESS TOKEN'
   #
   #  # Instantiate a session with a custom config:
-  #  session = Geoloqi::Session.new :access_token => 'YOUR ACCESS TOKEN', :config => {:use_hashie_mash => true}
+  #  geoloqi_session = Geoloqi::Session.new :access_token => 'YOUR ACCESS TOKEN', :config => {:use_hashie_mash => true}
   #
   #  # Instantiate a session with OAuth2 credentials (obtained from the Geoloqi Developers Site):
-  #  session = Geoloqi::Session.new :config => {:client_id => 'CLIENT ID', :client_secret => 'CLIENT SECRET'}
+  #  geoloqi_session = Geoloqi::Session.new :config => {:client_id => 'CLIENT ID', :client_secret => 'CLIENT SECRET'}
   #
   #  # Get profile:
-  #  result = session.get 'account/profile'
+  #  result = geoloqi_session.get 'account/profile'
   class Session
-    # This is the auth Hash, which is provided by the OAuth2 response. This can be stored externally and used to re-initialize the session.
+    # The auth Hash, which is provided by the OAuth2 response. This can be stored externally and used to re-initialize the session.
     # @return [Hash]
     attr_reader :auth
-    
-    # This is the config object attached to this session. It is unique to this session.
-    # @return [Geoloqi::Config]
+
+    # The config object attached to this session. It is unique to this session, and can be replaced/changed dynamically.
+    # @return [Config]
     attr_accessor :config
 
+    # Instantiate a Geoloqi session.
+    #
+    # @return [Config]
+    # @example
+    #  # With access token
+    #  geoloqi_session = Geoloqi::Session.new :access_token => 'YOUR ACCESS TOKEN'
+    #
+    #  # With OAuth2
+    #  geoloqi_session = Geoloqi::Session.new :config => {:client_id => 'CLIENT ID', :client_secret => 'CLIENT SECRET'}
     def initialize(opts={})
       opts[:config] = Geoloqi::Config.new opts[:config] if opts[:config].is_a? Hash
       @config = opts[:config] || (Geoloqi.config || Geoloqi::Config.new)
@@ -35,7 +46,8 @@ module Geoloqi
     end
 
     def auth=(hash)
-      @auth = hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+      new_auth = hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+      synchronize { @auth = new_auth }
     end
 
     # The access token for this session.
@@ -68,13 +80,14 @@ module Geoloqi
     # @param [Hash] headers (optional)
     #   Adds and overwrites headers in request sent to server.
     #
-    # @return [Hash] by default, [Hashie::Mash] if enabled in config.
+    # @return [Hash,Hashie::Mash]
+    # @see #post
     # @example
     #  # Get your user profile
-    #  response = session.get 'YOUR ACCESS TOKEN', 'account/profile'
+    #  result = geoloqi_session.get 'YOUR ACCESS TOKEN', 'account/profile'
     #
     #  # Get the last 5 locations
-    #  response = session.get 'YOUR ACCESS TOKEN', 'account/profile', :count => 5
+    #  result = geoloqi_session.get 'YOUR ACCESS TOKEN', 'account/profile', :count => 5
     def get(path, query=nil, headers={})
       run :get, path, query, headers
     end
@@ -82,28 +95,29 @@ module Geoloqi
     # Makes a POST request to the Geoloqi API server and returns response.
     #
     # @param [String] path
-    #   Path to the resource being requested (example: '/account/profile').
+    #  Path to the resource being requested (example: '/account/profile').
     #
     # @param [String, Hash] query (optional)
-    #   A query string or Hash to be converted to POST parameters.
+    #  A query string or Hash to be converted to POST parameters.
     #
     # @param [Hash] headers (optional)
-    #   Adds and overwrites headers in request sent to server.
+    #  Adds and overwrites headers in request sent to server.
     #
-    # @return [Hash] by default, [Hashie::Mash] if enabled in config.
+    # @return [Hash,Hashie::Mash]
+    # @see #get
     # @example
     #  # Create a new layer
-    #  Geoloqi.post 'YOUR ACCESS TOKEN', 'layer/create', :name => 'Portland Food Carts'
+    #  result = geoloqi_session.post 'layer/create', :name => 'Portland Food Carts'
     def post(path, query=nil, headers={})
       run :post, path, query, headers
     end
 
-    # Makes a one-time request to the Geoloqi API server.
+    # Makes a request to the Geoloqi API server.
     # 
-    # @return [Hash] by default, [Hashie::Mash] if enabled in config.
+    # @return [Hash,Hashie::Mash]
     # @example
     #  # Create a new layer
-    #  session.post 'YOUR ACCESS TOKEN', 'layer/create', :name => 'Northeast Portland'
+    #  result = geoloqi_session.run :get, 'layer/create', :name => 'Northeast Portland'
     def run(meth, path, query=nil, headers={})
       renew_access_token! if auth[:expires_at] && Time.rfc2822(auth[:expires_at]) <= Time.now && !(path =~ /^\/?oauth\/token$/)
       retry_attempt = 0
@@ -137,6 +151,11 @@ module Geoloqi
       @config.use_hashie_mash ? Hashie::Mash.new(hash) : hash
     end
 
+    # Makes a low-level request to the Geoloqi API server. It does no processing of the response.
+    #
+    # @return [Response]
+    # @example
+    #  result = geoloqi_session.execute :get, 'account/profile'
     def execute(meth, path, query=nil, headers={})
       query = Rack::Utils.parse_query query if query.is_a?(String)
       headers = default_headers.merge! headers
@@ -159,6 +178,11 @@ module Geoloqi
       Response.new raw.status, raw.headers, raw.body
     end
 
+    # Used to retrieve the access token from the Geoloqi OAuth2 server. This is fairly low level and you shouldn't need to use it directly.
+    #
+    # @return [Hash] - The auth hash used to persist the session object.
+    # @see #renew_access_token!
+    # @see #get_auth
     def establish(opts={})
       require 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
       auth = post 'oauth/token', {:client_id => @config.client_id,
@@ -171,10 +195,21 @@ module Geoloqi
       self.auth
     end
 
+    # Renew the access token provided from Geoloqi using the stored refresh token. This method is automatically called by the session object 
+    # when it detects an expiration, so you shouldn't need to explicitly call it.
+    #
+    # @return [Hash] The auth hash used to persist the session object.
+    # @see #establish
     def renew_access_token!
       establish :grant_type => 'refresh_token', :refresh_token => self.auth[:refresh_token]
     end
 
+    # Get the OAuth2 authentication information. This call also stores the auth to the session automatically.
+    #
+    # @param code [String] The code provided by the Geoloqi OAuth2 server.
+    # @param redirect_uri [String] The redirect URI provided to the Geoloqi OAuth2 server. This value must match the redirect_uri sent to the server.
+    # @return [Hash] The auth hash used to persist the session object.
+    # @see #establish
     def get_auth(code, redirect_uri=@config.redirect_uri)
       establish :grant_type => 'authorization_code', :code => code, :redirect_uri => redirect_uri
     end
@@ -191,6 +226,12 @@ module Geoloqi
       headers = {'Content-Type' => 'application/json', 'User-Agent' => "geoloqi-ruby #{Geoloqi.version}", 'Accept' => 'application/json'}
       headers['Authorization'] = "OAuth #{access_token}" if access_token
       headers
+    end
+
+    # Used to retrieve a semaphore lock for thread safety.
+    def synchronize(&block)
+      @@semaphore ||= Mutex.new
+      @@semaphore.synchronize &block
     end
   end
 end

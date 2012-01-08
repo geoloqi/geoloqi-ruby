@@ -27,7 +27,7 @@ module Geoloqi
     #
     # @return [IO]
     # @example
-    #   Geoloqi.config.logger = STDOUT
+    #  Geoloqi.config.logger = STDOUT
     attr_accessor :logger
     
     # Use Hashie::Mash for return objects, which provides dot-style data retrieval.
@@ -35,7 +35,7 @@ module Geoloqi
     # @see https://github.com/intridea/hashie
     # @return [Boolean]
     # @example
-    #   Geoloqi.config.use_hashie_mash = true
+    #  Geoloqi.config.use_hashie_mash = true
     #   
     #   # Get profile and retrieve data via Hashie::Mash dot notation
     #   result = Geoloqi.get 'YOUR ACCESS TOKEN', 'account/profile'
@@ -46,7 +46,7 @@ module Geoloqi
     #
     # @return [Boolean]
     # @example
-    #   Geoloqi.config :throw_exceptions = false
+    #  Geoloqi.config :throw_exceptions = false
     attr_accessor :throw_exceptions
     
     # Use dynamic error class names, which inherit from Geoloqi::ApiError. This may be deprecated in a future release.
@@ -58,7 +58,7 @@ module Geoloqi
     #
     # @return [Boolean]
     # @example
-    #   Geoloqi.config.throw_exceptions = true
+    #  Geoloqi.config.throw_exceptions = true
     attr_accessor :symbolize_names
 
 
@@ -67,11 +67,11 @@ module Geoloqi
     # @param opts A hash of the config settings.
     # @return [Config]
     # @example
-    #   # Dynamically create a Geoloqi::Config object
-    #   geoloqi_config = Geoloqi::Config.new :use_hashie_mash => true, :throw_exceptions => false
-    #   
-    #   # Use geoloqi_config to create new session
-    #   geoloqi_session = Geoloqi::Session.new :access_token => 'YOUR ACCESS TOKEN', :config => geoloqi_config
+    #  # Dynamically create a Geoloqi::Config object
+    #  geoloqi_config = Geoloqi::Config.new :use_hashie_mash => true, :throw_exceptions => false
+    #
+    #  # Use geoloqi_config to create new session
+    #  geoloqi_session = Geoloqi::Session.new :access_token => 'YOUR ACCESS TOKEN', :config => geoloqi_config
     def initialize(opts={})
       self.use_hashie_mash ||= false
       self.throw_exceptions ||= true
