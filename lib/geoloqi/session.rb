@@ -72,7 +72,7 @@ module Geoloqi
     # Makes a GET request to the Geoloqi API server and returns response.
     #
     # @param [String] path
-    #   Path to the resource being requested (example: '/account/profile').
+    #   Path to the resource being requested.
     #
     # @param [String, Hash] query (optional)
     #   A query string or Hash to be appended to the request.
