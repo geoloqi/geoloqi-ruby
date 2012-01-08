@@ -10,8 +10,7 @@ require 'geoloqi/session'
 require 'geoloqi/version'
 
 module Geoloqi
-  @@adapter = :net_http
-  @@enable_logging = false
+  SSL_CERT_FILE = File.join(File.dirname(__FILE__), 'geoloqi/data/ca-certificates.crt')
   @@config = Config.new
 
   class << self

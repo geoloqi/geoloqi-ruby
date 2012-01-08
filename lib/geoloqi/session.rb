@@ -10,7 +10,7 @@ module Geoloqi
       self.auth = opts[:auth] || {}
       self.auth[:access_token] = opts[:access_token] if opts[:access_token]
 
-      @connection = Faraday.new(:url => Geoloqi.api_url) do |builder|
+      @connection = Faraday.new(:url => Geoloqi.api_url, :ssl => {:verify => true, :ca_file => Geoloqi::SSL_CERT_FILE}) do |builder|
         builder.adapter  @config.adapter || :net_http
       end
     end
