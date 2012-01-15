@@ -31,22 +31,28 @@ If you're using Geoloqi with OAuth or making multiple requests, we recommend usi
 
 Which returns a hash with the following:
 
-	{"layer_id"=>"Gx", "user_id"=>"4", "type"=>"normal", "name"=>"USGS Earthquakes",
-	 "description"=>"Real-time notifications of earthquakes near you.",
-	 "icon"=>"http://beta.geoloqi.com/images/earthquake-layer.png", "public"=>"1",
-	 "url"=>"https://a.geoloqi.com/layer/description/Gx", "subscription"=>false, "settings"=>false}
+	{:layer_id     => "Gx", 
+	 :user_id      => "4", 
+	 :type         => "normal", 
+	 :name         => "USGS Earthquakes",
+	 :description  => "Real-time notifications of earthquakes near you.",
+	 :icon         => "http://beta.geoloqi.com/images/earthquake-layer.png", 
+	 :public       => "1",
+	 :url          => "https://a.geoloqi.com/layer/description/Gx", 
+	 :subscription => false, 
+	 :settings     => false}
 
 Both GET and POST are supported. To send a POST to create a place (in this case, the entire city of Portland, Oregon):
 
 	response = geoloqi.post 'place/create', {
-	  "layer_id" => "1Wn",
-	  "name" => "3772756364",
-	  "latitude" => "45.5037078163837",
-	  "longitude" => "-122.622699737549",
-	  "radius" => "3467.44",
-	  "extra" => {
-	    "description" => "Portland",
-	     "url" => "http://en.wikipedia.org/wiki/Portland"
+	  :layer_id  => "1Wn",
+	  :name      => "3772756364",
+	  :latitude  => "45.5037078163837",
+	  :longitude => "-122.622699737549",
+	  :radius    => "3467.44",
+	  :extra     => {
+	    :description => "Portland",
+	    :url         => "http://en.wikipedia.org/wiki/Portland"
 	  }
 	}
 
@@ -88,7 +94,7 @@ Implementing OAuth2 is not difficult, because we've done all the hard work for y
     end
 
     get '/?' do
-      username = geoloqi.get('account/username')['username']
+      username = geoloqi.get('account/username')[:username]
       "You have successfully logged in as #{username}!"
     end
 
