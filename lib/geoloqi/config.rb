@@ -46,7 +46,7 @@ module Geoloqi
     #
     # @return [Boolean]
     # @example
-    #  Geoloqi.config :throw_exceptions = false
+    #  Geoloqi.config.throw_exceptions = false
     attr_accessor :throw_exceptions
     
     # Use dynamic error class names, which inherit from Geoloqi::ApiError. This may be deprecated in a future release.
