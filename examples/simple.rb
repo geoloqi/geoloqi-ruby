@@ -10,12 +10,12 @@ layer_id = geoloqi.post('layer/create', :name => 'Test Layer')[:layer_id]
 puts geoloqi.get("layer/info/#{layer_id}")
 
 place_id = geoloqi.post('place/create', {
-  :layer_id => layer_id,
-  :name => "Munich on the Willamette",
-  :latitude => "45.5037078163837",
+  :layer_id  => layer_id,
+  :name      => "Munich on the Willamette",
+  :latitude  => "45.5037078163837",
   :longitude => "-122.622699737549",
-  :radius => "3467.44",
-  :extra => {
+  :radius    => "3467.44",
+  :extra     => {
     :description => "Portland",
     :url => "http://en.wikipedia.org/wiki/Portland,_Oregon"
   }
