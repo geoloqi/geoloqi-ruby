@@ -1,9 +1,11 @@
 # A simple Sinatra example demonstrating OAuth2 implementation with Geoloqi
 
-# This version of the example uses sinatra-synchrony to implement a fast, EventMachine-based app.
+# This version of the example uses sinatra-synchrony to implement an EventMachine-based app.
 # Run this example with Thin (which uses EventMachine under the hood): ruby sinatra_synchrony.rb -s thin
 # Works on anything that supports Thin (Rack, EY, Heroku, etc..)
 # To install deps: gem install sinatra sinatra-synchrony geoloqi
+#
+# More information: http://kyledrake.net/sinatra-synchrony
 
 require 'sinatra'
 require 'sinatra/geoloqi'
