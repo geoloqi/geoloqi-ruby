@@ -7,6 +7,8 @@ require 'geoloqi/config'
 require 'geoloqi/error'
 require 'geoloqi/response'
 require 'geoloqi/session'
+require 'geoloqi/model'
+require 'geoloqi/models/layer'
 require 'geoloqi/version'
 
 module Geoloqi
