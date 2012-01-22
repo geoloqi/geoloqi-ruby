@@ -1,5 +1,6 @@
 module Geoloqi
-  class Layer < Model::Base
+  class Layer
+    include Model
     property :name, :string
     property :key, :string
   end

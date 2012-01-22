@@ -1,6 +1,6 @@
 module Geoloqi
-  module Model
 
+  module Model
     class Property
       attr_accessor :name, :type
       def initialize(name, type)
@@ -9,62 +9,83 @@ module Geoloqi
       end
     end
 
-    class Base
-      @@properties = []
+    def self.included(base)
+      base.extend(ClassMethods)
+    end
 
-      class << self
-        def property(name, type)
-          @@properties << Property.new(name, type)
-          define_method "#{name}=" do |value|
-            @unsaved_attributes ||= []
-            @unsaved_attributes << name
-            attribute_set name, value
-          end
-          attr_reader name
+    module ClassMethods
+
+      def property(name, type)
+        @_properties ||= []
+        @_properties << Property.new(name, type)
+        define_method "#{name}=" do |value|
+          @_unsaved_attributes ||= []
+          @_unsaved_attributes << name
+          attribute_set name, value
         end
-
-        def properties
-          @@properties
-        end
-
-        def property_keys
-          properties.collect {|a| a.name}
-        end
+        attr_reader name
       end
 
-      def attribute_set(name, value)
-        raise ArgumentError, "property \"#{name}\" does not exist for this class" unless self.class.property_keys.include? name
-        instance_variable_set "@#{name}".to_sym, value
+      def properties
+        @_properties
       end
 
-      def attribute_get(name)
-        instance_variable_get name
+      def property_keys
+        properties.collect {|a| a.name}
       end
 
-      def attributes_get
-        attributes = {}
-        self.class.property_keys.each {|key| attributes[key] = send(key)}
-        attributes
-      end
+    end
 
-      def attributes(attributes=nil)
-        return attributes_get if attributes.nil?
-        send :attributes=, attributes
+    def save
+      if @_new_record
+        puts "CREATING RECORD"
+        puts "TODO: Create record"
       end
+      puts "SAVING #{attributes_get.inspect}"
+      true
+    end
 
-      def attributes=(attributes={})
-        attributes.each {|key, value| attribute_set key, value}
-      end
+    def attribute_set(name, value)
+      raise ArgumentError, "property \"#{name}\" does not exist for this class" unless self.class.property_keys.include? name
+      instance_variable_set "@#{name}".to_sym, value
+    end
 
-      def initialize(attributes={})
-        attributes.each {|k,v| send("#{k}=", v) }
-      end
+    def attribute_get(name)
+      instance_variable_get name
+    end
 
-      alias_method :to_hash, :attributes
+    def attributes_get
+      attributes = {}
+      self.class.property_keys.each {|key| attributes[key] = send(key)}
+      attributes
+    end
 
-      def to_json
-        attributes.to_json
-      end
+    def attributes(attributes=nil)
+      return attributes_get if attributes.nil?
+      send :attributes=, attributes
+    end
+
+    def attributes=(attributes={})
+      attributes.each {|key, value| attribute_set key, value}
+    end
+
+    def unsaved_attributes
+      @_unsaved_attributes ||= []
+    end
+
+    def unsaved_attributes?
+      !unsaved_attributes.empty?
+    end
+
+    def initialize(attributes={})
+      @_new_record = true
+      attributes.each {|k,v| send("#{k}=", v) }
+    end
+
+    alias_method :to_hash, :attributes
+
+    def to_json
+      attributes.to_json
     end
   end
 end
