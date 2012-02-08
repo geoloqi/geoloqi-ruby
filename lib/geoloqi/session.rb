@@ -178,6 +178,11 @@ module Geoloqi
       Response.new raw.status, raw.headers, raw.body
     end
 
+    def batch(&block)
+      batch = Batch.new self, &block
+      batch.run!
+    end
+
     # Used to retrieve the access token from the Geoloqi OAuth2 server. This is fairly low level and you shouldn't need to use it directly.
     #
     # @return [Hash] - The auth hash used to persist the session object.
