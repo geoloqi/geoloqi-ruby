@@ -178,9 +178,20 @@ module Geoloqi
       Response.new raw.status, raw.headers, raw.body
     end
 
+    # Make a batch request to the Geoloqi API. Compiles POST requests (provided in a block) and returns an array of the results,
+    # which includes the response code, headers, and body. Calls are made synchronously on the server, and the results are returned in
+    # the same order. This should be much faster for scenarios where inserting/updating hundreds or thousands of records is needed.
+    # @return [Array] - An array of Hash objects containing the response code, headers, and body.
+    # @see Batch
+    # @example
+    #  # Create 3 layers at once, return responses in an array
+    #  responses_array = geoloqi_session.batch do
+    #    post 'layer/create', :name => 'Layer 1'
+    #    post 'layer/create', :name => 'Layer 2'
+    #    post 'layer/create', :name => 'Layer 3'
+    #  end
     def batch(&block)
-      batch = Batch.new self, &block
-      batch.run!
+      Batch.new(self, &block).run!
     end
 
     # Used to retrieve the access token from the Geoloqi OAuth2 server. This is fairly low level and you shouldn't need to use it directly.

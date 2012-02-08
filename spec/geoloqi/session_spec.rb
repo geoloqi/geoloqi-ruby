@@ -82,21 +82,37 @@ describe Geoloqi::Session do
     end
 
     it 'successfully makes a batch request' do
-      
-      
-      stub_request(:post, "https://api.geoloqi.com/1/batch/run").
-        with(:body => "{\"access_token\":\"access_token1234\",\"batch\":[{\"relative_url\":\"/layer/create\",\"body\":{\"name\":\"Test 1\"},\"headers\":{}},{\"relative_url\":\"/layer/create\",\"body\":{\"name\":\"Test 2\"},\"headers\":{}}]}", 
-             :headers => {'Accept'=>'application/json', 'Authorization'=>'OAuth access_token1234', 'Content-Type'=>'application/json', 'User-Agent'=>'geoloqi-ruby 0.9.36'}).
-        to_return(:status => 200, :body => {:result=>[{:code=>409, :headers=>[{:name=>"Date", :value=>"Wed, 08 Feb 2012 02:16:11 GMT"}, {:name=>"Content-Type", :value=>"application/json"}, {:name=>"Transfer-Encoding", :value=>"chunked"}, {:name=>"Connection", :value=>"keep-alive"}, {:name=>"Location", :value=>"https://api.geoloqi.com/1/layer/info/7Gk"}, {:name=>"X-Request-Duration", :value=>"9"}, {:name=>"X-Queries", :value=>"2"}, {:name=>"X-Queries-Master", :value=>"1"}, {:name=>"X-Queries-Slave", :value=>"1"}], :body=>{:layer_id=>"7Gk", :user_id=>"13K", :type=>"normal", :name=>"Test", :description=>"", :icon=>"https://geoloqi.com/images/default_layer.png", :public=>0, :url=>"https://a.geoloqi.com/layer/description/7Gk", :trigger_rate_limit=>30, :bounds=>false}, :time_ms=>11.373}, {:code=>409, :headers=>[{:name=>"Date", :value=>"Wed, 08 Feb 2012 02:16:11 GMT"}, {:name=>"Content-Type", :value=>"application/json"}, {:name=>"Transfer-Encoding", :value=>"chunked"}, {:name=>"Connection", :value=>"keep-alive"}, {:name=>"Location", :value=>"https://api.geoloqi.com/1/layer/info/Aae"}, {:name=>"X-Request-Duration", :value=>"9"}, {:name=>"X-Queries", :value=>"2"}, {:name=>"X-Queries-Master", :value=>"1"}, {:name=>"X-Queries-Slave", :value=>"1"}], :body=>{:layer_id=>"Aae", :user_id=>"13K", :type=>"normal", :name=>"testtwo", :description=>"", :icon=>"https://geoloqi.com/images/default_layer.png", :public=>0, :url=>"https://a.geoloqi.com/layer/description/Aae", :trigger_rate_limit=>30, :bounds=>false}, :time_ms=>10.735}]}.to_json, :headers => {})
+      stub_request(:post, api_url('batch/run')).
+        with(:body => {
+         :access_token => 'access_token1234',
+         :batch => [
+           {:relative_url => '/layer/create', :body => {:name => 'Test 1'}, :headers => {}},
+           {:relative_url => '/layer/create', :body => {:name => 'Test 2'}, :headers => {}}
+          ]
+        }.to_json, 
+        :headers => { 
+          'Authorization' => 'OAuth access_token1234',
+          'Content-Type'  => 'application/json'}).
+        to_return(:status => 200, :body => {:result => [
+          {:code => 201, 
+           :headers => [{:name => "Date", :value => "Wed, 08 Feb 2012 02:16:11 GMT"}],
+           :body => {:layer_id => "abc", :name => "Test 1"},
+           :time_ms => 11.373
+          },
+          {:code => 201,
+           :headers => [{:name => "Date", :value => "Wed, 08 Feb 2012 02:16:11 GMT"}],
+           :body => { :layer_id => "def", :name => "Test 2" },
+           :time_ms => 10.735
+          }]}.to_json)
 
       response = @session.batch do
-        post '/layer/create', {name: 'Test 1'}
-        post '/layer/create', {name: 'Test 2'}
+        post '/layer/create', :name => 'Test 1'
+        post '/layer/create', :name => 'Test 2'
       end
 
-      expect {
-        response[:result].first[:code] == 409
-      }
+      expect { response.first[:code] == 201 }
+      expect { response.first[:body][:layer_id] == 'abc' }
+      expect { response.last[:body][:layer_id] == 'def' }
     end
 
     it 'throws an exception on a hard request error' do
