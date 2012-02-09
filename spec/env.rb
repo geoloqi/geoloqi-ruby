@@ -6,6 +6,9 @@ require 'wrong'
 require 'wrong/adapters/minitest'
 require 'webmock'
 
+# Fix for RBX
+require 'hashie/hash'
+
 CLIENT_ID = 'client_id1234'
 CLIENT_SECRET = 'client_secret1234'
 ACCESS_TOKEN = 'access_token1234'

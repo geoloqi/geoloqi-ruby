@@ -15,15 +15,20 @@ module Geoloqi
     end
 
     def post(path, query=nil, headers={})
+       build_request path, query, headers
+    end
+
+    def get(path, query=nil, headers={})
+      path += "?#{Rack::Utils.parse_query query}" if query.is_a?(String)
+      build_request path, nil, headers
+    end
+
+    def build_request(path, query=nil, headers={})
       @jobs << {
         :relative_url => path,
         :body => query,
         :headers => headers
       }
-    end
-
-    def get(path, query=nil, headers={})
-      raise NotImplementedError, 'get requests are not yet implemented in batch'
     end
 
     def run!
