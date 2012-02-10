@@ -1,8 +1,8 @@
 Geoloqi Library for Ruby [![](https://secure.travis-ci.org/geoloqi/geoloqi-ruby.png)](http://travis-ci.org/geoloqi/geoloqi-ruby)
 ===
-Powerful, flexible, lightweight interface to the Geoloqi platform API.
+Powerful, flexible, lightweight interface to the Geoloqi Platform API.
 
-This library was developed with two goals in mind: to be as simple as possible, but also to be very powerful to allow for much higher-end development (multiple Geoloqi apps per instance, concurrency, performance).
+This library was developed with two goals in mind: to be as simple as possible, but also to be very powerful to allow for much higher-end development (multiple Geoloqi apps per instance, concurrency, performance, thread-safety).
 
 Installation
 ---
@@ -98,7 +98,7 @@ Implementing OAuth2 is not difficult, because we've done all the hard work for y
       "You have successfully logged in as #{username}!"
     end
 
-Visit the [Geoloqi Sinatra plugin](http://geoloqi/sinatra-geoloqi) page to see instructions on usage.
+Visit the [Geoloqi Sinatra plugin](http://github.com/geoloqi/sinatra-geoloqi) page to see instructions on usage.
 
 A lower-level demonstration of the OAuth2 code can be found in the examples folder. This may be useful for anyone working to embed with other frameworks (such as Ruby on Rails).
 
