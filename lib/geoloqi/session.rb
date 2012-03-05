@@ -55,7 +55,7 @@ module Geoloqi
     def access_token
       @auth[:access_token]
     end
-    
+
     # Retreive the application access token for this session.
     # This token is used in the same manner as the user access token, it simply allows the appliction to make
     # requests on behalf of itself instead of a user within the app.
@@ -127,7 +127,7 @@ module Geoloqi
     end
 
     # Makes a request to the Geoloqi API server.
-    # 
+    #
     # @return [Hash,Hashie::Mash]
     # @example
     #  # Create a new layer
@@ -225,7 +225,7 @@ module Geoloqi
       self.auth
     end
 
-    # Renew the access token provided from Geoloqi using the stored refresh token. This method is automatically called by the session object 
+    # Renew the access token provided from Geoloqi using the stored refresh token. This method is automatically called by the session object
     # when it detects an expiration, so you shouldn't need to explicitly call it.
     #
     # @return [Hash] The auth hash used to persist the session object.
