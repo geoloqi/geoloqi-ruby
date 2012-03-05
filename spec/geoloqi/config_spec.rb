@@ -5,10 +5,10 @@ describe Geoloqi::Config do
     it 'returns authorize url' do
       Geoloqi.config :client_id => CLIENT_ID, :client_secret => CLIENT_SECRET, :redirect_uri => 'http://blah.blah/test'
       authorize_url = Geoloqi.authorize_url 'test'
-      expect { authorize_url == "#{Geoloqi.oauth_url}?"+
-                                'response_type=code&'+
-                                "client_id=#{Rack::Utils.escape 'test'}&"+
-                                "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
+      authorize_url.must_equal "#{Geoloqi.oauth_url}?"+
+                               'response_type=code&'+
+                               "client_id=#{Rack::Utils.escape 'test'}&"+
+                               "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}"
     end
   end
   
@@ -21,7 +21,7 @@ describe Geoloqi::Config do
     Geoloqi.config :client_id => CLIENT_ID, :client_secret => CLIENT_SECRET, :logger => io
     
     Geoloqi.get ACCESS_TOKEN, 'account/username', :cats => 'lol'
-    expect { io.string =~ /Geoloqi::Session/ }
+    io.string.must_match /Geoloqi::Session/
   end
   
   it 'displays log information if logger is provided and query is nil' do
@@ -33,14 +33,14 @@ describe Geoloqi::Config do
     Geoloqi.config :client_id => CLIENT_ID, :client_secret => CLIENT_SECRET, :logger => io
     
     Geoloqi.get ACCESS_TOKEN, 'account/username'
-    expect { io.string =~ /Geoloqi::Session/ }
+    io.string.must_match /Geoloqi::Session/
   end
 
   it 'correctly checks booleans for client_id and client_secret' do
     [:client_id, :client_secret].each do |k|
-      expect { Geoloqi.config(k => '').send("#{k}?") == false }
-      expect { Geoloqi.config(k => nil).send("#{k}?") == false }
-      expect { Geoloqi.config(k => 'lol').send("#{k}?") == true }
+      Geoloqi.config(k => '').send("#{k}?").must_equal false
+      Geoloqi.config(k => nil).send("#{k}?").must_equal false
+      Geoloqi.config(k => 'lol').send("#{k}?").must_equal true
     end
   end
 end

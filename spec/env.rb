@@ -2,8 +2,6 @@
 require 'rubygems'
 require './lib/geoloqi.rb'
 require 'minitest/autorun'
-require 'wrong'
-require 'wrong/adapters/minitest'
 require 'webmock'
 
 # Fix for RBX
@@ -22,5 +20,4 @@ end
 
 def api_url(path); "#{Geoloqi.api_url}/#{Geoloqi.api_version}/#{path}" end
 
-Wrong.config.alias_assert :expect
 include WebMock::API
