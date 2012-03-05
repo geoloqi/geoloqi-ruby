@@ -56,8 +56,8 @@ module Geoloqi
       @auth[:access_token]
     end
 
-    # Retreive the application access token for this session.
-    # This token is used in the same manner as the user access token, it simply allows the appliction to make
+    # Retrieve the application access token for this session.
+    # This token is used in the same manner as the user access token, it simply allows the application to make
     # requests on behalf of itself instead of a user within the app.
     # It is strongly recommended that you keep this token private, and don't share it with
     # clients.
