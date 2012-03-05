@@ -55,6 +55,20 @@ module Geoloqi
     def access_token
       @auth[:access_token]
     end
+    
+    # Retreive the application access token for this session.
+    # This token is used in the same manner as the user access token, it simply allows the appliction to make
+    # requests on behalf of itself instead of a user within the app.
+    # It is strongly recommended that you keep this token private, and don't share it with
+    # clients.
+    #
+    # This call makes a request to the API server for each instantiation of the object (so it will request once per
+    # session object, and then cache the result). It is recommended that you cache this
+    # with something like memcache to avoid latency issues.
+    # @return [String]
+    def application_access_token
+      @application_access_token ||= establish(:grant_type => 'client_credentials')[:access_token]
+    end
 
     # Determines if the access token exists.
     # @return [Boolean]

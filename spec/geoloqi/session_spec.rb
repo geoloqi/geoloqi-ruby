@@ -230,9 +230,37 @@ describe Geoloqi::Session do
     end
   end
 
+  # PUT GENERAL TESTS IN HERE
+
   describe 'with config' do
     before do
       @session = Geoloqi::Session.new :config => {:client_id => CLIENT_ID, :client_secret => CLIENT_SECRET}
+    end
+
+    it 'retreives application access token data' do
+      stub_request(:post, api_url('oauth/token')).
+        with(:body => {:client_id => CLIENT_ID,
+                       :client_secret => CLIENT_SECRET,
+                       :grant_type => 'client_credentials'}.to_json).
+        to_return(:status => 200,
+                  :body => {:display_name => 'My App',
+                            :username => 'madeuphashdontuseforanything',
+                            :user_id => 'userid',
+                            :is_anonymous => 0,
+                            :access_token => 'app_access_token',
+                            :scope => nil,
+                            :expires_at => nil}.to_json)
+
+      resp = @session.establish :grant_type => 'client_credentials'
+
+      expect { resp[:display_name] == 'My App' }
+      expect { resp[:access_token] == 'app_access_token' }
+
+      expect { @session.application_access_token == 'app_access_token' }
+
+      # Test the cache.
+      @session.send(:instance_variable_set, :'@application_access_token', 'works')
+      expect { @session.application_access_token == 'works' }
     end
 
     it 'retrieves auth with mock' do
