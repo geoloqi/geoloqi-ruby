@@ -213,6 +213,7 @@ module Geoloqi
     # @return [Hash] - The auth hash used to persist the session object.
     # @see #renew_access_token!
     # @see #get_auth
+    # @see #application_access_token
     def establish(opts={})
       require 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
       auth = post 'oauth/token', {:client_id => @config.client_id,
