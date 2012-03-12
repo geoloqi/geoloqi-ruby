@@ -6,6 +6,10 @@ describe Geoloqi::Session do
       @session = Geoloqi::Session.new
     end
 
+    it 'should have unique copy of config object' do
+      @session.config.__id__.wont_equal Geoloqi.config.__id__
+    end
+
     it 'should not find access token' do
       @session.access_token?.must_equal false
     end

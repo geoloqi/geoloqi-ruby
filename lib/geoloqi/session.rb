@@ -36,7 +36,7 @@ module Geoloqi
     #  geoloqi_session = Geoloqi::Session.new :config => {:client_id => 'CLIENT ID', :client_secret => 'CLIENT SECRET'}
     def initialize(opts={})
       opts[:config] = Geoloqi::Config.new opts[:config] if opts[:config].is_a? Hash
-      @config = opts[:config] || (Geoloqi.config || Geoloqi::Config.new)
+      @config = opts[:config] || (Geoloqi.config || Geoloqi::Config.new).dup
       self.auth = opts[:auth] || {}
       self.auth[:access_token] = opts[:access_token] if opts[:access_token]
 
