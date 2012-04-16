@@ -5,9 +5,8 @@ Gem::Specification.new do |s|
   s.authors = ['Kyle Drake', 'Aaron Parecki']
   s.email = ['kyle@geoloqi.com', 'aaron@geoloqi.com']
   s.homepage = 'http://github.com/geoloqi/geoloqi-ruby'
-  s.summary = 'Powerful, flexible, lightweight interface to the awesome Geoloqi platform API'
-  s.description = 'Powerful, flexible, lightweight interface to the awesome Geoloqi platform API! Uses Faraday, '+
-                  'and can be used with Ruby 1.9 and EM-Synchrony for really fast, highly concurrent development.'
+  s.summary = 'Powerful, flexible, lightweight interface to the Geoloqi Platform API'
+  s.description = 'Powerful, flexible, lightweight, thread-safe interface to the Geoloqi Platform API'
 
   s.files = `git ls-files`.split("\n")
   s.require_paths = %w[lib]
