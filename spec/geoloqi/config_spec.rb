@@ -1,6 +1,10 @@
 require File.join File.dirname(__FILE__), '..', 'env.rb'
 
 describe Geoloqi::Config do
+  after do
+    Geoloqi.config({})
+  end
+  
   describe 'with redirect_uri' do
     it 'returns authorize url' do
       Geoloqi.config :client_id => CLIENT_ID, :client_secret => CLIENT_SECRET, :redirect_uri => 'http://blah.blah/test'

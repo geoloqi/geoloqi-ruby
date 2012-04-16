@@ -215,7 +215,7 @@ module Geoloqi
     # @see #get_auth
     # @see #application_access_token
     def establish(opts={})
-      require 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
+      raise Error, 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
       auth = post 'oauth/token', {:client_id => @config.client_id,
                                   :client_secret => @config.client_secret}.merge!(opts)
 

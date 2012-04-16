@@ -3,6 +3,6 @@ module Geoloqi
   #
   # @return [String]
   def self.version
-    '0.9.39'
+    '0.9.40'
   end
 end

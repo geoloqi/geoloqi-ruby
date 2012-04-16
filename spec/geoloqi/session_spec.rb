@@ -96,6 +96,10 @@ describe Geoloqi::Session do
     before do
       @session = Geoloqi::Session.new :access_token => ACCESS_TOKEN
     end
+    
+    it 'fails with establish without client_id and client_secret' do
+      lambda { @session.establish }.must_raise Geoloqi::Error
+    end
 
     it 'successfully makes a batch request' do
       stub_request(:post, api_url('batch/run')).
