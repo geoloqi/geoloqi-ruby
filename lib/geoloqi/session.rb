@@ -83,6 +83,83 @@ module Geoloqi
       Geoloqi.authorize_url @config.client_id, redirect_uri, opts
     end
 
+    # Makes a GET request to the Geoloqi API server with application credentials. The client_id and client_secret are
+    # sent via an HTTP Authorize header, as per the OAuth2 spec. Otherwise, this method is equivelant to #get.
+    #
+    # This is required for API calls which require escalated privileges, such as retreiving user information for a user
+    # that is not associated with your current access token (GET user/list/ANOTHER_USERS_ID).
+    #
+    # If you don't require application privileges, you should use the regular #get method instead.
+    # 
+    # See the Authorization section of the Geoloqi Platform API documentation for more information.
+    #
+    # @param [String] path
+    #   Path to the resource being requested.
+    #
+    # @param [String, Hash] query (optional)
+    #   A query string or Hash to be appended to the request.
+    #
+    # @param [Hash] headers (optional)
+    #   Adds and overwrites headers in request sent to server.
+    #
+    # @return [Hash,Hashie::Mash]
+    # @see #app_post
+    # @see #get
+    # @example
+    #  # Request user information, for a user not associated with the current user access token.
+    #  result = geoloqi_session.app_get 'YOUR ACCESS TOKEN', 'user/list/ANOTHER_USERS_ID'
+    def app_get(path, query=nil, headers={})
+      app_run :get, path, query, headers
+    end
+
+    # Makes a POST request to the Geoloqi API server with application credentials. The client_id and client_secret are
+    # sent via an HTTP Authorize header, as per the OAuth2 spec. Otherwise, this method is equivelant to #post.
+    #
+    # This is required for API calls which require escalated privileges, such as creating a user account (user/create, user/create_anon) 
+    # or making a request for an access token (oauth/token).
+    #
+    # If you don't require application privileges, you should use the regular #post method instead.
+    #
+    # See the Authorization section of the Geoloqi Platform API documentation for more information.
+    #
+    # @param [String] path
+    #  Path to the resource being requested (example: '/account/profile').
+    #
+    # @param [String, Hash] query (optional)
+    #  A query string or Hash to be converted to POST parameters.
+    #
+    # @param [Hash] headers (optional)
+    #  Adds and overwrites headers in request sent to server.
+    #
+    # @return [Hash,Hashie::Mash]
+    # @see #app_get
+    # @see #post
+    # @example
+    #  # Create a new layer
+    #  result = geoloqi_session.post 'layer/create', :name => 'Portland Food Carts'
+    def app_post(path, query=nil, headers={})
+      app_run :post, path, query, headers
+    end
+
+    # Makes a request to the Geoloqi API server with escalated privileges.
+    #
+    # @return [Hash,Hashie::Mash]
+    # @see #app_get
+    # @see #app_post
+    # @example
+    #  # Create a new layer
+    #  result = geoloqi_session.run :get, 'layer/create', :name => 'Northeast Portland'
+    def app_run(meth, path, query=nil, headers={})
+      raise Error, 'client_id and client_secret are required to make application requests' unless @config.client_id? && @config.client_secret?
+
+      credentials = "#{@config.client_id}:#{@config.client_secret}"
+
+      # Base64.strict_encode64 in 1.9, but we're using pack directly for compatibility with 1.8.
+      headers['Authorization'] = "Basic " + [credentials].pack("m0")
+
+      run meth, path, query, headers
+    end
+
     # Makes a GET request to the Geoloqi API server and returns response.
     #
     # @param [String] path
@@ -95,13 +172,14 @@ module Geoloqi
     #   Adds and overwrites headers in request sent to server.
     #
     # @return [Hash,Hashie::Mash]
+    # @see #app_get
     # @see #post
     # @example
     #  # Get your user profile
-    #  result = geoloqi_session.get 'YOUR ACCESS TOKEN', 'account/profile'
+    #  result = geoloqi_session.get 'account/profile'
     #
     #  # Get the last 5 locations
-    #  result = geoloqi_session.get 'YOUR ACCESS TOKEN', 'account/profile', :count => 5
+    #  result = geoloqi_session.get 'account/profile', :count => 5
     def get(path, query=nil, headers={})
       run :get, path, query, headers
     end
@@ -119,6 +197,7 @@ module Geoloqi
     #
     # @return [Hash,Hashie::Mash]
     # @see #get
+    # @see #app_post
     # @example
     #  # Create a new layer
     #  result = geoloqi_session.post 'layer/create', :name => 'Portland Food Carts'
@@ -216,13 +295,11 @@ module Geoloqi
     # @see #application_access_token
     def establish(opts={})
       raise Error, 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
-      auth = post 'oauth/token', {:client_id => @config.client_id,
+      auth = post 'oauth/token', {:client_id     => @config.client_id,
                                   :client_secret => @config.client_secret}.merge!(opts)
 
-      # expires_at is likely incorrect. I'm chopping 5 seconds
-      # off to allow for a more graceful failover.
-      auth['expires_at'] = auth_expires_at auth['expires_in']
       self.auth = auth
+      self.auth[:expires_at] = auth_expires_at auth[:expires_in]
       self.auth
     end
 

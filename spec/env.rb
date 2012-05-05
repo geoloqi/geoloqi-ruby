@@ -20,4 +20,8 @@ end
 
 def api_url(path); "#{Geoloqi.api_url}/#{Geoloqi.api_version}/#{path}" end
 
+def api_url_with_auth(path)
+  Addressable::URI.parse(api_url(path)).merge(:user => CLIENT_ID, :password => CLIENT_SECRET).to_s
+end
+
 include WebMock::API

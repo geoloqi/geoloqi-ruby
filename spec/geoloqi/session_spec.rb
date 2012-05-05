@@ -261,6 +261,23 @@ describe Geoloqi::Session do
       @session = Geoloqi::Session.new :config => {:client_id => CLIENT_ID, :client_secret => CLIENT_SECRET}
     end
 
+    it 'should automatically provide client_id and client_secret for app resource calls' do
+      stub_request(:get, api_url_with_auth('user/list/notme')).
+        to_return(:status => 200,
+                  :body => {:username => 'captainpicard'}.to_json)
+
+      resp = @session.app_get 'user/list/notme'
+      resp[:username].must_equal 'captainpicard'      
+      
+      stub_request(:post, api_url_with_auth('user/create_anon')).
+        with(:body => {:device_id => 'abcd'}.to_json).
+        to_return(:status => 200,
+                  :body => {:username => 'captainpicard'}.to_json)
+
+      resp = @session.app_post 'user/create_anon', {:device_id => 'abcd'}
+      resp[:username].must_equal 'captainpicard'
+    end
+
     it 'retreives application access token data' do
       stub_request(:post, api_url('oauth/token')).
         with(:body => {:client_id => CLIENT_ID,

@@ -1,16 +1,13 @@
-Geoloqi Library for Ruby [![](https://secure.travis-ci.org/geoloqi/geoloqi-ruby.png)](http://travis-ci.org/geoloqi/geoloqi-ruby)
-===
+# Geoloqi Library for Ruby [![](https://secure.travis-ci.org/geoloqi/geoloqi-ruby.png)](http://travis-ci.org/geoloqi/geoloqi-ruby)
 Powerful, flexible, lightweight interface to the Geoloqi Platform API.
 
 This library was developed with two goals in mind: to be as simple as possible, but also to be very powerful to allow for much higher-end development (multiple Geoloqi apps per instance, concurrency, performance, thread-safety).
 
-Installation
----
+##Installation
 
     gem install geoloqi
 
-Basic Usage
----
+##Basic Usage
 Geoloqi uses OAuth2 for authentication, but if you're only working with your own account, you don't need to go through the authorization steps. Simply go to your account settings on the [Geoloqi Developers Site](https://developers.geoloqi.com), click on "Get Started" and copy the permanent access token. You can use this token to run the following examples.
 
 If you just need to make simple requests, you can just make a simple get or post request from Geoloqi:
@@ -62,8 +59,7 @@ You can send query string parameters with get requests too:
 	# or
 	geoloqi.get 'location/history?count=2'
 
-Hashie::Mash support
----
+##Hashie::Mash support
 Want to access in a more OOP/JSON style way? Use Hashie::Mash as the response object:
 
     require 'hashie'
@@ -74,8 +70,7 @@ Want to access in a more OOP/JSON style way? Use Hashie::Mash as the response ob
     response['layer_id'] # this works too
     response[:layer_id]  # so does this
 
-Implementing OAuth2
----
+##Implementing OAuth2
 
 We have integrated OAuth2 support into the gem for your convenience, and provided a Geoloqi plugin for Sinatra. This is all it takes to get a "Hello World" for OAuth2 with Geoloqi:
 
@@ -102,16 +97,31 @@ Visit the [Geoloqi Sinatra plugin](http://github.com/geoloqi/sinatra-geoloqi) pa
 
 A lower-level demonstration of the OAuth2 code can be found in the examples folder. This may be useful for anyone working to embed with other frameworks (such as Ruby on Rails).
 
-Found a bug?
----
+##Making requests on behalf of the application
+Some actions (such as creating a user account for your application) require escalated privileges. To use these, call app\_get and app\_post:
+
+    geoloqi.app_post 'user/create_anon'
+
+## API Documentation
+The API has been extensively documented at [our developers site](https://developers.geoloqi.com/api).
+
+## RDoc/YARD Documentation
+The code has been fully documented, and the latest version is always available at the [Rubydoc Site](http://rubydoc.info/gems/geoloqi).
+
+## Running the Tests
+
+    $ bundle install
+    $ bundle exec rake
+
+In addition to a full test suite, there is Travis integration for 1.9, JRuby and Rubinius. 1.8 is supported, however Travis tests have been disabled because 1.8's random hashing sometimes breaks Webmock. I highly recommend looking into upgrading to Ruby 1.9.. it's awesomer.
+
+##Found a bug?
 Let us know! Send a pull request or a patch. Questions? Ask! We're here to help. File issues, we'll respond to them!
 
-Authors
----
+##Authors
 * Kyle Drake
 * Aaron Parecki
 
-TODO / Possible projects
----
+##TODO / Possible projects
 * Rails plugin (works fine as-is, but maybe we can make it easier?)
 * More Concrete API in addition to the simple one?
