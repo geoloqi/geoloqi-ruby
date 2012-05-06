@@ -1,5 +1,6 @@
 # Bundler.setup
 require 'rubygems'
+require 'addressable/uri'
 require './lib/geoloqi.rb'
 require 'minitest/autorun'
 require 'webmock'
