@@ -2,6 +2,7 @@ libdir = File.dirname(__FILE__)
 $LOAD_PATH.unshift(libdir) unless $LOAD_PATH.include?(libdir)
 require 'json'
 require 'faraday'
+require 'rack'
 require 'logger'
 require 'geoloqi/config'
 require 'geoloqi/error'
