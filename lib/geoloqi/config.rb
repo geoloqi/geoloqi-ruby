@@ -58,7 +58,7 @@ module Geoloqi
     #
     # @return [Boolean]
     # @example
-    #  Geoloqi.config.throw_exceptions = true
+    #  Geoloqi.config.symbolize_names = true
     attr_accessor :symbolize_names
 
 
