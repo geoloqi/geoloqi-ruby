@@ -14,7 +14,7 @@ If you just need to make simple requests, you can just make a simple get or post
 
     require 'geoloqi'
     result = Geoloqi.get 'YOUR ACCESS TOKEN', 'layer/info/Gx'
-    puts response.inspect
+    p result
 
     # or a POST!
     result = Geoloqi.post 'YOUR ACCESS TOKEN', 'layer/create', :name => 'Test Layer'
