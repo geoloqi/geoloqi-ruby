@@ -24,6 +24,12 @@ module Geoloqi
     # The config object attached to this session. It is unique to this session, and can be replaced/changed dynamically.
     # @return [Config]
     attr_accessor :config
+    
+    # The raw response object for the request. Using this, you can find the HTTP code of the response.
+    # For example, geoloqi.response.status
+    # The headers are available at geoloqi.response.headers
+    # @return [Response]
+    attr_reader :response
 
     # Instantiate a Geoloqi session.
     #
@@ -217,6 +223,7 @@ module Geoloqi
 
       begin
         response = execute meth, path, query, headers
+        @response = response # Make the response object available to the caller
         hash = JSON.parse response.body, :symbolize_names => @config.symbolize_names
 
         if hash.is_a?(Hash) && hash[:error] && @config.throw_exceptions
