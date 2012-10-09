@@ -94,6 +94,7 @@ describe Geoloqi::Session do
 
   describe 'with access token and no config' do
     before do
+      Geoloqi.config = {}
       @session = Geoloqi::Session.new :access_token => ACCESS_TOKEN
     end
     
