@@ -16,6 +16,11 @@ module Geoloqi
     # @return [String]
     attr_accessor :redirect_uri
     
+    # Which API URL to use for Geoloqi. You shouldn't need to change this.
+    #
+    # @return [String]
+    attr_accessor :api_url
+    
     # Which HTTP adapter to use for Faraday. Defaults to :net_http
     #
     # @return [Symbol]

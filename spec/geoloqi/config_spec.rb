@@ -16,6 +16,16 @@ describe Geoloqi::Config do
     end
   end
   
+  it 'uses special api url' do
+    stub_request(:get, 'https://apispecial.geoloqi.com/1/account/username').
+      with(:headers => {'Authorization'=>'OAuth access_token1234'}).
+      to_return(:body => {'username' => 'testuser'}.to_json)
+    
+    Geoloqi.config :client_id => CLIENT_ID, :client_secret => CLIENT_SECRET, :api_url => 'https://apispecial.geoloqi.com'
+    resp = Geoloqi.get ACCESS_TOKEN, 'account/username'
+    resp[:username].must_equal 'testuser'
+  end
+  
   it 'displays log information if logger is provided' do
     stub_request(:get, api_url('account/username?cats=lol')).
       with(:headers => {'Authorization'=>'OAuth access_token1234'}).
